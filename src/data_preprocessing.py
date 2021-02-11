@@ -90,9 +90,9 @@ class AccountData(EmptyAccountData):
         if self.auto_sum_dates:
             self.sum_dates()
 
-#if __name__ == "main":
-account_data1 = AccountData("./data/konto_gemensamt.csv")
-account_data2 = AccountData("./data/konto_personligt.csv")
-summed_account = account_data1 + account_data2
-print(summed_account.get_category_column("Food",1))
+if __name__ == "__main__":
+    account_data1 = AccountData("./data/konto_gemensamt.csv")
+    account_data2 = AccountData("./data/konto_personligt.csv")
+    summed_account = account_data1 + account_data2
+    print(summed_account.get_category_column("Services",1))
 
