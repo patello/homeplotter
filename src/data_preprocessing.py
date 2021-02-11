@@ -1,10 +1,11 @@
 import csv
 import re
+import datetime
 
 import reciever_categories
 
 def process_date(date_string):
-    return date_string
+    return datetime.datetime.strptime(date_string,"%Y-%m-%d").date()
 
 def process_amount(amount_string):
     #Replace the decimal comma with a dot
