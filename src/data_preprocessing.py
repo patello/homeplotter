@@ -24,18 +24,20 @@ class EmptyAccountData():
     def __init__(self):
         self.purchases = {}
         self.categories = []
+        self.unsorted_recievers = []
         
     def get_category(self,category):
         return self.purchases[category]
 
     def __add__(self, other):
-        summedAccount = EmptyAccountData()
+        summed_account = EmptyAccountData()
         #Get the unqiue categories from the lists of categories
         unique_categories = list(set(self.categories) | set(other.categories))
         #Loop through each category, default to an empty list if key doesn't exist in either account data
         for category in unique_categories:
-            summedAccount.purchases[category]=self.purchases.get(category,[])+self.purchases.get(category,[])
-        return summedAccount
+            summed_account.purchases[category]=self.purchases.get(category,[])+self.purchases.get(category,[])
+        summed_account.unsorted_recievers=self.unsorted_recievers+other.unsorted_recievers
+        return summed_account
 
 class AccountData(EmptyAccountData):
     def __init__(self, account_file):
@@ -55,9 +57,13 @@ class AccountData(EmptyAccountData):
                 category = match_category(row[5],self.reciever_category)
                 if not category is None:
                     self.purchases[category].append((process_date(row[0]),process_amount(row[1])))
+                else:
+                    self.unsorted_recievers.append(row[5])
 
 #if __name__ == "main":
 account_data1 = AccountData("./data/konto_gemensamt.csv")
 account_data2 = AccountData("./data/konto_personligt.csv")
 summed_account = account_data1 + account_data2
 print(summed_account.get_category("Food"))
+
+print(summed_account.unsorted_recievers)
