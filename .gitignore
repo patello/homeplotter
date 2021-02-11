@@ -1,3 +1,6 @@
+# data folder contains personal data, ignore it
+data/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
