@@ -54,7 +54,7 @@ class EmptyAccountData():
         unique_categories = list(set(self.categories) | set(other.categories))
         #Loop through each category, default to an empty list if key doesn't exist in either account data
         for category in unique_categories:
-            summed_account.purchases[category]=self.purchases.get(category,[])+self.purchases.get(category,[])
+            summed_account.purchases[category]=self.purchases.get(category,[])+other.purchases.get(category,[])
         summed_account.categories=unique_categories
         summed_account.unsorted_recievers=self.unsorted_recievers+other.unsorted_recievers
         return summed_account
