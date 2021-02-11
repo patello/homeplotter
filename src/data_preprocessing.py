@@ -1,6 +1,8 @@
 import csv
 import re
 
+import reciever_categories
+
 def process_date(date_string):
     return date_string
 
@@ -18,17 +20,34 @@ def match_category(reciever, categories):
             return category
     return None
 
-class AccountData():
+class EmptyAccountData():
     def __init__(self):
-        self.reciever_category =  {"Food":["Delivery Hero Sweden","MAXI ICA STORMARKNAD"],"Drink":["SYSTEMBOLAGET"]}
+        self.purchases = {}
+        self.categories = []
+        
+    def get_category(self,category):
+        return self.purchases[category]
+
+    def __add__(self, other):
+        summedAccount = EmptyAccountData()
+        #Get the unqiue categories from the lists of categories
+        unique_categories = list(set(self.categories) | set(other.categories))
+        #Loop through each category, default to an empty list if key doesn't exist in either account data
+        for category in unique_categories:
+            summedAccount.purchases[category]=self.purchases.get(category,[])+self.purchases.get(category,[])
+        return summedAccount
+
+class AccountData(EmptyAccountData):
+    def __init__(self, reciever_category, account_file):
+        super().__init__()
+        self.reciever_category = reciever_category
         self.categories = self.reciever_category.keys()
 
-        self.purchases = {}
         #Add all categories to the purchase dict
         for category in self.categories:
             self.purchases[category] = []
 
-        with open('/root/projects/homeplotter/data/konto_personligt.csv', newline='') as csvfile:
+        with open(account_file, newline='') as csvfile:
             accountreader = csv.reader(csvfile, delimiter=';')
             #Skip the header line by first calling next
             next(accountreader,None)
@@ -37,10 +56,8 @@ class AccountData():
                 if not category is None:
                     self.purchases[category].append((process_date(row[0]),process_amount(row[1])))
 
-    def get_category(self,category):
-        return self.purchases[category]
-
-
 #if __name__ == "main":
-accountData = AccountData()
-pass
+account_data = AccountData(reciever_categories.categories, "./data/konto_gemensamt.csv")
+print(account_data.get_category("Food"))
+summed_account = account_data + account_data
+print(summed_account.get_category("Food"))
