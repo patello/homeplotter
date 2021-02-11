@@ -30,6 +30,9 @@ class EmptyAccountData():
         
     def get_category(self,category):
         return self.purchases[category]
+    
+    def get_category_column(self, category, i):
+        return [row[i] for row in self.purchases[category]]
 
     def sum_dates(self):
         #Sum all purchases on a given date into one post
@@ -91,4 +94,5 @@ class AccountData(EmptyAccountData):
 account_data1 = AccountData("./data/konto_gemensamt.csv")
 account_data2 = AccountData("./data/konto_personligt.csv")
 summed_account = account_data1 + account_data2
-print(summed_account.get_category("Food"))
+print(summed_account.get_category_column("Food",1))
+
