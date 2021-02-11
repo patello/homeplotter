@@ -21,10 +21,11 @@ def match_category(reciever, categories):
     return None
 
 class EmptyAccountData():
-    def __init__(self):
+    def __init__(self,auto_sum_dates=True):
         self.purchases = {}
         self.categories = []
         self.unsorted_recievers = []
+        self.auto_sum_dates = auto_sum_dates
         
     def get_category(self,category):
         return self.purchases[category]
@@ -57,11 +58,13 @@ class EmptyAccountData():
             summed_account.purchases[category]=self.purchases.get(category,[])+other.purchases.get(category,[])
         summed_account.categories=unique_categories
         summed_account.unsorted_recievers=self.unsorted_recievers+other.unsorted_recievers
+        if self.auto_sum_dates:
+            summed_account.sum_dates()
         return summed_account
 
 class AccountData(EmptyAccountData):
-    def __init__(self, account_file):
-        super().__init__()
+    def __init__(self, account_file,**kwds):
+        super().__init__(**kwds)
         #Consider moving to EmptyAccountData, since most/all use-cases will use the same reciever categories
         self.reciever_category = reciever_categories.categories
         self.categories = self.reciever_category.keys()
@@ -80,11 +83,11 @@ class AccountData(EmptyAccountData):
                     self.purchases[category].append([process_date(row[0]),process_amount(row[1])])
                 else:
                     self.unsorted_recievers.append(row[5])
+        if self.auto_sum_dates:
+            self.sum_dates()
 
 #if __name__ == "main":
 account_data1 = AccountData("./data/konto_gemensamt.csv")
 account_data2 = AccountData("./data/konto_personligt.csv")
 summed_account = account_data1 + account_data2
-print(summed_account.get_category("Services"))
-summed_account.sum_dates()
-print(summed_account.get_category("Services"))
+print(summed_account.get_category("Food"))
