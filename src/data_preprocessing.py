@@ -38,9 +38,9 @@ class EmptyAccountData():
         return summedAccount
 
 class AccountData(EmptyAccountData):
-    def __init__(self, reciever_category, account_file):
+    def __init__(self, account_file):
         super().__init__()
-        self.reciever_category = reciever_category
+        self.reciever_category = reciever_categories.categories
         self.categories = self.reciever_category.keys()
 
         #Add all categories to the purchase dict
@@ -57,7 +57,7 @@ class AccountData(EmptyAccountData):
                     self.purchases[category].append((process_date(row[0]),process_amount(row[1])))
 
 #if __name__ == "main":
-account_data = AccountData(reciever_categories.categories, "./data/konto_gemensamt.csv")
-print(account_data.get_category("Food"))
-summed_account = account_data + account_data
+account_data1 = AccountData("./data/konto_gemensamt.csv")
+account_data2 = AccountData("./data/konto_personligt.csv")
+summed_account = account_data1 + account_data2
 print(summed_account.get_category("Food"))
