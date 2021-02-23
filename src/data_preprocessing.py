@@ -53,6 +53,10 @@ class EmptyAccountData():
                 purchase_len = len(self.expenses[category])
                 i += 1
 
+    def sort_dates(self):
+        for category in self.categories:
+            self.expenses[category]=sorted(self.expenses[category], key = lambda l:l[0])
+
     def __add__(self, other):
         summed_account = EmptyAccountData()
         #Get the unqiue categories from the lists of categories
