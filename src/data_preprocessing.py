@@ -22,11 +22,10 @@ def match_category(reciever, categories):
     return None
 
 class EmptyAccountData():
-    def __init__(self,auto_sum_dates=True):
+    def __init__(self):
         self.expenses = {}
         self.categories = []
         self.unsorted_recievers = []
-        self.auto_sum_dates = auto_sum_dates
         
     def get_category(self,category):
         return self.expenses[category]
@@ -66,8 +65,8 @@ class EmptyAccountData():
             summed_account.expenses[category]=self.expenses.get(category,[])+other.expenses.get(category,[])
         summed_account.categories=unique_categories
         summed_account.unsorted_recievers=self.unsorted_recievers+other.unsorted_recievers
-        if self.auto_sum_dates:
-            summed_account.sum_dates()
+        summed_account.sum_dates()
+        summed_account.sort_dates()
         return summed_account
 
 class AccountData(EmptyAccountData):
@@ -77,7 +76,7 @@ class AccountData(EmptyAccountData):
         self.reciever_category = reciever_categories.categories
         self.categories = self.reciever_category.keys()
 
-        #Add all categories to the purchase dict
+        #Add all categories to the expense dict
         for category in self.categories:
             self.expenses[category] = []
 
@@ -91,8 +90,8 @@ class AccountData(EmptyAccountData):
                     self.expenses[category].append([process_date(row[0]),process_amount(row[1])])
                 else:
                     self.unsorted_recievers.append(row[5])
-        if self.auto_sum_dates:
-            self.sum_dates()
+        self.sum_dates()
+        self.sort_dates()
 
 if __name__ == "__main__":
     account_data1 = AccountData("./data/konto_gemensamt.csv")
