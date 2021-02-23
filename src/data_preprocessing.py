@@ -56,6 +56,17 @@ class EmptyAccountData():
         for category in self.categories:
             self.expenses[category]=sorted(self.expenses[category], key = lambda l:l[0])
 
+    def add_missing_dates(self):
+        #Adds dates that are missing from the series and set that expense to zero.
+        #Assumes that the series has been sorted. Maybe call self.sort_dates first? Shouldn't be expensive if it is already sorted.
+        for category in self.categories:
+            for i in range(0,len(self.expenses[category])-1):
+                days_between=(self.expenses[category][i+1][0]-self.expenses[category][i][0]).days
+                for j in range(0,days_between-1):
+                    self.expenses[category].append([self.expenses[category][i][0]+datetime.timedelta(j),0])
+        #New dates are added to the end of the list so it needs to be sorted again
+        self.sort_dates()
+
     def __add__(self, other):
         summed_account = EmptyAccountData()
         #Get the unqiue categories from the lists of categories
@@ -67,6 +78,7 @@ class EmptyAccountData():
         summed_account.unsorted_recievers=self.unsorted_recievers+other.unsorted_recievers
         summed_account.sum_dates()
         summed_account.sort_dates()
+        summed_account.add_missing_dates()
         return summed_account
 
 class AccountData(EmptyAccountData):
@@ -92,10 +104,11 @@ class AccountData(EmptyAccountData):
                     self.unsorted_recievers.append(row[5])
         self.sum_dates()
         self.sort_dates()
+        self.add_missing_dates()
 
 if __name__ == "__main__":
     account_data1 = AccountData("./data/konto_gemensamt.csv")
     account_data2 = AccountData("./data/konto_personligt.csv")
     summed_account = account_data1 + account_data2
-    print(summed_account.get_category_column("Services",1))
+    print(summed_account.get_category_column("Services",0))
 
