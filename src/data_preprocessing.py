@@ -23,34 +23,34 @@ def match_category(reciever, categories):
 
 class EmptyAccountData():
     def __init__(self,auto_sum_dates=True):
-        self.purchases = {}
+        self.expenses = {}
         self.categories = []
         self.unsorted_recievers = []
         self.auto_sum_dates = auto_sum_dates
         
     def get_category(self,category):
-        return self.purchases[category]
+        return self.expenses[category]
     
     def get_category_column(self, category, i):
-        return [row[i] for row in self.purchases[category]]
+        return [row[i] for row in self.expenses[category]]
 
     def sum_dates(self):
-        #Sum all purchases on a given date into one post
+        #Sum all expenses on a given date into one post
         for category in self.categories:
             i = 0
-            purchase_len = len(self.purchases[category])
+            purchase_len = len(self.expenses[category])
             while i < purchase_len:
                 # Find all matches which has the same date as the one at index i. 
                 # From https://stackoverflow.com/questions/946860/using-pythons-list-index-method-on-a-list-of-tuples-or-objects
-                matches=[index for index, purchase  in enumerate(self.purchases[category]) if purchase[0] == self.purchases[category][i][0]]
+                matches=[index for index, purchase  in enumerate(self.expenses[category]) if purchase[0] == self.expenses[category][i][0]]
                 #Ignore the first (last after reversing) one since it matches itself. Also reverse it since we want to delete the index without affecting the order 
                 #Last tip from https://stackoverflow.com/questions/11303225/how-to-remove-multiple-indexes-from-a-list-at-the-same-time
                 for j in sorted(matches[1:],reverse=True):
                     #Add the amount on the current date together with the amount the matched date
-                    self.purchases[category][i][1] += self.purchases[category][j][1]
-                    del self.purchases[category][j]
+                    self.expenses[category][i][1] += self.expenses[category][j][1]
+                    del self.expenses[category][j]
                 #Since the length might have change, we need to recalculate it:
-                purchase_len = len(self.purchases[category])
+                purchase_len = len(self.expenses[category])
                 i += 1
 
     def __add__(self, other):
@@ -59,7 +59,7 @@ class EmptyAccountData():
         unique_categories = list(set(self.categories) | set(other.categories))
         #Loop through each category, default to an empty list if key doesn't exist in either account data
         for category in unique_categories:
-            summed_account.purchases[category]=self.purchases.get(category,[])+other.purchases.get(category,[])
+            summed_account.expenses[category]=self.expenses.get(category,[])+other.expenses.get(category,[])
         summed_account.categories=unique_categories
         summed_account.unsorted_recievers=self.unsorted_recievers+other.unsorted_recievers
         if self.auto_sum_dates:
@@ -75,7 +75,7 @@ class AccountData(EmptyAccountData):
 
         #Add all categories to the purchase dict
         for category in self.categories:
-            self.purchases[category] = []
+            self.expenses[category] = []
 
         with open(account_file, newline='') as csvfile:
             accountreader = csv.reader(csvfile, delimiter=';')
@@ -84,7 +84,7 @@ class AccountData(EmptyAccountData):
             for row in accountreader:
                 category = match_category(row[5],self.reciever_category)
                 if not category is None:
-                    self.purchases[category].append([process_date(row[0]),process_amount(row[1])])
+                    self.expenses[category].append([process_date(row[0]),process_amount(row[1])])
                 else:
                     self.unsorted_recievers.append(row[5])
         if self.auto_sum_dates:
