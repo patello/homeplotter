@@ -17,5 +17,5 @@ class Categorizer():
         return dict.keys(self._rec_cat)
 
 if __name__=="__main__":
-    categorizer = Categorizer("/root/projects/homeplotter/data/personal_categories.json")
-    print(categorizer.match_category("Kortköp 201227 COOP NÄRA REIMERSHOL"))
+    categorizer = Categorizer("/root/projects/homeplotter/example_data/example_categories.json")
+    print(categorizer.match_category("Kortköp 201227 A1"))

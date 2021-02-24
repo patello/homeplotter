@@ -100,9 +100,9 @@ class AccountData(EmptyAccountData):
         self.add_missing_dates()
 
 if __name__ == "__main__":
-    cat_file="/root/projects/homeplotter/data/personal_categories.json"
-    account_data1 = AccountData("./data/konto_gemensamt.csv",cat_file)
-    account_data2 = AccountData("./data/konto_personligt.csv",cat_file)
+    cat_file="./example_data/categories.json"
+    account_data1 = AccountData("./example_data/data1.csv",cat_file)
+    account_data2 = AccountData("./example_data/data2.csv",cat_file)
     summed_account = account_data1 + account_data2
-    print(summed_account.get_category_column("Services",0))
+    print(summed_account.get_category_column("cat1",0))
 
