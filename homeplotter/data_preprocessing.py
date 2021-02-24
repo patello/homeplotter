@@ -2,7 +2,7 @@ import csv
 import re
 import datetime
 
-from homeplotter.reciever_categories import rcategories
+from homeplotter.categorizer import Categorizer
 
 def process_date(date_string):
     return datetime.datetime.strptime(date_string,"%Y-%m-%d").date()
@@ -13,13 +13,6 @@ def process_amount(amount_string):
     #Turn the string into a number and define expenses as positive
     amount = -float(processed_string)
     return amount
-
-def match_category(reciever, categories):
-    for category in categories:
-        reg_exp = "\\b("+"|".join(categories[category])+")"
-        if not re.search(reg_exp,reciever) is None:
-            return category
-    return None
 
 class EmptyAccountData():
     def __init__(self):
@@ -82,11 +75,11 @@ class EmptyAccountData():
         return summed_account
 
 class AccountData(EmptyAccountData):
-    def __init__(self, account_file,**kwds):
+    def __init__(self, account_file,cat_file,**kwds):
         super().__init__(**kwds)
         #Consider moving to EmptyAccountData, since most/all use-cases will use the same reciever categories
-        self.reciever_category = rcategories
-        self.categories = self.reciever_category.keys()
+        categorizer = Categorizer(cat_file)
+        self.categories = categorizer.categories()
 
         #Add all categories to the expense dict
         for category in self.categories:
@@ -97,7 +90,7 @@ class AccountData(EmptyAccountData):
             #Skip the header line by first calling next
             next(accountreader,None)
             for row in accountreader:
-                category = match_category(row[5],self.reciever_category)
+                category = categorizer.match_category(row[5])
                 if not category is None:
                     self.expenses[category].append([process_date(row[0]),process_amount(row[1])])
                 else:
@@ -107,8 +100,9 @@ class AccountData(EmptyAccountData):
         self.add_missing_dates()
 
 if __name__ == "__main__":
-    account_data1 = AccountData("./data/konto_gemensamt.csv")
-    account_data2 = AccountData("./data/konto_personligt.csv")
+    cat_file="/root/projects/homeplotter/data/personal_categories.json"
+    account_data1 = AccountData("./data/konto_gemensamt.csv",cat_file)
+    account_data2 = AccountData("./data/konto_personligt.csv",cat_file)
     summed_account = account_data1 + account_data2
     print(summed_account.get_category_column("Services",0))
 
