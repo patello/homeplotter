@@ -90,11 +90,7 @@ class AccountData(EmptyAccountData):
             #Skip the header line by first calling next
             next(accountreader,None)
             for row in accountreader:
-                category = categorizer.match_category(row[5])
-                if not category is None:
-                    self.expenses[category].append([process_date(row[0]),process_amount(row[1])])
-                else:
-                    self.unsorted_recievers.append(row[5])
+                self.expenses[categorizer.match_category(row[5])].append([process_date(row[0]),process_amount(row[1])])
         self.sum_dates()
         self.sort_dates()
         self.add_missing_dates()
@@ -104,5 +100,5 @@ if __name__ == "__main__":
     account_data1 = AccountData("./example_data/data1.csv",cat_file)
     account_data2 = AccountData("./example_data/data2.csv",cat_file)
     summed_account = account_data1 + account_data2
-    print(summed_account.get_category_column("cat1",0))
+    print(summed_account.get_category_column("Uncategorized",0))
 
