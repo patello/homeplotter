@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 
-from homeplotter.data_preprocessing import AccountData 
+from homeplotter.accountdata import AccountData 
 
 account_data1 = AccountData("./data/konto_gemensamt.csv")
 account_data2 = AccountData("./data/konto_personligt.csv")

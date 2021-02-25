@@ -18,7 +18,6 @@ class EmptyAccountData():
     def __init__(self):
         self.expenses = {}
         self.categories = []
-        self.unsorted_recievers = []
         
     def get_category(self,category):
         return self.expenses[category]
@@ -45,20 +44,21 @@ class EmptyAccountData():
                 purchase_len = len(self.expenses[category])
                 i += 1
 
-    def sort_dates(self):
+    #Sort date set to private, data that is returned should always be sorted
+    def _sort_dates(self):
         for category in self.categories:
             self.expenses[category]=sorted(self.expenses[category], key = lambda l:l[0])
 
     def add_missing_dates(self):
         #Adds dates that are missing from the series and set that expense to zero.
-        #Assumes that the series has been sorted. Maybe call self.sort_dates first? Shouldn't be expensive if it is already sorted.
+        #Assumes that the series has been sorted. Maybe call self._sort_dates first? Shouldn't be expensive if it is already sorted.
         for category in self.categories:
             for i in range(0,len(self.expenses[category])-1):
                 days_between=(self.expenses[category][i+1][0]-self.expenses[category][i][0]).days
                 for j in range(0,days_between-1):
                     self.expenses[category].append([self.expenses[category][i][0]+datetime.timedelta(j),0])
         #New dates are added to the end of the list so it needs to be sorted again
-        self.sort_dates()
+        self._sort_dates()
 
     def __add__(self, other):
         summed_account = EmptyAccountData()
@@ -68,10 +68,7 @@ class EmptyAccountData():
         for category in unique_categories:
             summed_account.expenses[category]=self.expenses.get(category,[])+other.expenses.get(category,[])
         summed_account.categories=unique_categories
-        summed_account.unsorted_recievers=self.unsorted_recievers+other.unsorted_recievers
-        summed_account.sum_dates()
-        summed_account.sort_dates()
-        summed_account.add_missing_dates()
+        summed_account._sort_dates()
         return summed_account
 
 class AccountData(EmptyAccountData):
@@ -91,9 +88,7 @@ class AccountData(EmptyAccountData):
             next(accountreader,None)
             for row in accountreader:
                 self.expenses[categorizer.match_category(row[5])].append([process_date(row[0]),process_amount(row[1])])
-        self.sum_dates()
-        self.sort_dates()
-        self.add_missing_dates()
+        self._sort_dates()
 
 if __name__ == "__main__":
     cat_file="./example_data/categories.json"
