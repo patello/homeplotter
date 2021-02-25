@@ -12,13 +12,31 @@ def process_amount(amount_string):
     processed_string = amount_string.replace(",",".")
     #Turn the string into a number and define expenses as positive
     amount = -float(processed_string)
-    return amount
+    return amount        
 
-class EmptyAccountData():
-    def __init__(self):
+class AccountData():
+    def __init__(self, account_file=None, cat_file=None, **kwds):
         self._expenses = {}
         self.categories = []
         
+        if cat_file is not None:
+            categorizer = Categorizer(cat_file)
+            self.categories = categorizer.categories()
+
+            #Add all categories to the expense dict
+            for category in self.categories:
+                self._expenses[category] = []
+
+            if account_file is not None:    
+                with open(account_file, newline='') as csvfile:
+                    accountreader = csv.reader(csvfile, delimiter=';')
+                    #Skip the header line by first calling next
+                    next(accountreader,None)
+                    for row in accountreader:
+                        category=categorizer.match_category(row[5])
+                        self._expenses[categorizer.match_category(row[5])].append([process_date(row[0]),process_amount(row[1]),category,row[5]])
+                self._sort_dates()
+
     def get_category(self,category):
         return self._expenses[category]
     
@@ -61,7 +79,7 @@ class EmptyAccountData():
         self._sort_dates()
 
     def __add__(self, other):
-        summed_account = EmptyAccountData()
+        summed_account = AccountData()
         #Get the unqiue categories from the lists of categories
         unique_categories = list(set(self.categories) | set(other.categories))
         #Loop through each category, default to an empty list if key doesn't exist in either account data
@@ -70,26 +88,6 @@ class EmptyAccountData():
         summed_account.categories=unique_categories
         summed_account._sort_dates()
         return summed_account
-
-class AccountData(EmptyAccountData):
-    def __init__(self, account_file,cat_file,**kwds):
-        super().__init__(**kwds)
-        #Consider moving to EmptyAccountData, since most/all use-cases will use the same reciever categories
-        categorizer = Categorizer(cat_file)
-        self.categories = categorizer.categories()
-
-        #Add all categories to the expense dict
-        for category in self.categories:
-            self._expenses[category] = []
-
-        with open(account_file, newline='') as csvfile:
-            accountreader = csv.reader(csvfile, delimiter=';')
-            #Skip the header line by first calling next
-            next(accountreader,None)
-            for row in accountreader:
-                category=categorizer.match_category(row[5])
-                self._expenses[categorizer.match_category(row[5])].append([process_date(row[0]),process_amount(row[1]),category,row[5]])
-        self._sort_dates()
 
 if __name__ == "__main__":
     cat_file="./example_data/categories.json"
