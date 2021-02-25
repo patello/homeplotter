@@ -1,0 +1,2 @@
+#Don't know why this file is needed. VSCode won't load the tests otherwise, even when the package is installed in the pythonpath..
+#Seems like an abuse of pytest test discovery.. https://stackoverflow.com/questions/49028611/pytest-cannot-find-module/49033954
