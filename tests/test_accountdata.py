@@ -1,4 +1,5 @@
 import os
+import datetime
 
 from homeplotter.accountdata import AccountData
 
@@ -61,6 +62,20 @@ def test_add__is_sorted():
     for data in all_data[1:]:
         assert(data[0]>=last_date)
         last_date=data[0]
+
+def test_get_timeseries():
+    acc_data2 = AccountData(data_path2,cat_path)
+    ts = acc_data2.get_timeseries("cat1")
+
+    #The lenght of the timeseries should be the number of number of days between first and last day of data 1
+    assert(len(ts)==26)
+
+    #All dates should be present between the first and the last, an only occur once
+    last_date = ts[0][0]
+    for data in ts[1:]:
+        assert(last_date+datetime.timedelta(1)==data[0])
+        last_date = data[0]
+
 
 if __name__=="__main__":
     test_init()

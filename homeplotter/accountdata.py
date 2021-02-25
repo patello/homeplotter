@@ -43,7 +43,15 @@ class AccountData():
     def get_category_column(self, category, i):
         return [row[i] for row in self._expenses[category]]
 
-    def sum_dates(self):
+    def get_timeseries(self,category):
+        ts_acc_data = AccountData()
+        ts_acc_data.categories = self.categories
+        ts_acc_data._expenses = self._expenses
+        ts_acc_data._sum_dates()
+        ts_acc_data._add_missing_dates()
+        return ts_acc_data.get_category(category)
+
+    def _sum_dates(self):
         #Sum all expenses on a given date into one post
         for category in self.categories:
             i = 0
@@ -67,13 +75,13 @@ class AccountData():
         for category in self.categories:
             self._expenses[category]=sorted(self._expenses[category], key = lambda l:l[0])
 
-    def add_missing_dates(self):
+    def _add_missing_dates(self):
         #Adds dates that are missing from the series and set that expense to zero.
         #Assumes that the series has been sorted. Maybe call self._sort_dates first? Shouldn't be expensive if it is already sorted.
         for category in self.categories:
             for i in range(0,len(self._expenses[category])-1):
                 days_between=(self._expenses[category][i+1][0]-self._expenses[category][i][0]).days
-                for j in range(0,days_between-1):
+                for j in range(1,days_between):
                     self._expenses[category].append([self._expenses[category][i][0]+datetime.timedelta(j),0])
         #New dates are added to the end of the list so it needs to be sorted again
         self._sort_dates()
