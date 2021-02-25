@@ -23,6 +23,12 @@ def test_get_category():
     #Length of get_category("Uncategorized") should be the same as the number of uncategorized expenses in data1
     assert(len(acc_data1.get_category("Uncategorized"))==3)
 
+def test_get_category__category_is_correct():
+    acc_data1 = AccountData(data_path1,cat_path)
+    #When asking for data from a category, all categories should be correct
+    for data in acc_data1.get_category("cat3"):
+        assert(data[2]=="cat3")
+
 def test_get_category__is_sorted():
     #Everything should sorted ascending by the first column (date) after initialization
     acc_data1 = AccountData(data_path1,cat_path)

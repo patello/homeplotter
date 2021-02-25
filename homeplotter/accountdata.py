@@ -87,7 +87,8 @@ class AccountData(EmptyAccountData):
             #Skip the header line by first calling next
             next(accountreader,None)
             for row in accountreader:
-                self._expenses[categorizer.match_category(row[5])].append([process_date(row[0]),process_amount(row[1])])
+                category=categorizer.match_category(row[5])
+                self._expenses[categorizer.match_category(row[5])].append([process_date(row[0]),process_amount(row[1]),category,row[5]])
         self._sort_dates()
 
 if __name__ == "__main__":
