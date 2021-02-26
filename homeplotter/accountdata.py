@@ -16,16 +16,12 @@ def process_amount(amount_string):
 
 class AccountData():
     def __init__(self, account_file=None, cat_file=None, **kwds):
-        self._expenses = {}
+        self._expenses = []
         self.categories = []
         
         if cat_file is not None:
             categorizer = Categorizer(cat_file)
             self.categories = categorizer.categories()
-
-            #Add all categories to the expense dict
-            for category in self.categories:
-                self._expenses[category] = []
 
             if account_file is not None:    
                 with open(account_file, newline='') as csvfile:
@@ -34,14 +30,14 @@ class AccountData():
                     next(accountreader,None)
                     for row in accountreader:
                         category=categorizer.match_category(row[5])
-                        self._expenses[categorizer.match_category(row[5])].append([process_date(row[0]),process_amount(row[1]),category,row[5]])
+                        self._expenses.append([process_date(row[0]),process_amount(row[1]),category,row[5]])
                 self._sort_dates()
 
     def get_data(self,category):
-        return self._expenses[category]
+        return list(filter(lambda x : x[2]==category,self._expenses))
     
     def get_column(self, category, i):
-        return [row[i] for row in self._expenses[category]]
+        return [row[i] for row in self.get_data(category)]
 
     def get_timeseries(self,category):
         ts_acc_data = AccountData()
@@ -51,11 +47,13 @@ class AccountData():
         ts_acc_data._add_missing_dates()
         return ts_acc_data.get_data(category)
 
+    def _
+
     def _sum_dates(self):
-        #Sum all expenses on a given date into one post
+        #Sum all expenses on a given date into one post, do it separately for each category
         for category in self.categories:
             i = 0
-            purchase_len = len(self._expenses[category])
+            purchase_len = len(self.get_data(category))
             while i < purchase_len:
                 # Find all matches which has the same date as the one at index i. 
                 # From https://stackoverflow.com/questions/946860/using-pythons-list-index-method-on-a-list-of-tuples-or-objects
@@ -72,8 +70,7 @@ class AccountData():
 
     #Sort date set to private, data that is returned should always be sorted
     def _sort_dates(self):
-        for category in self.categories:
-            self._expenses[category]=sorted(self._expenses[category], key = lambda l:l[0])
+        self._expenses=sorted(self._expenses, key = lambda l:l[0])
 
     def _add_missing_dates(self):
         #Adds dates that are missing from the series and set that expense to zero.
@@ -88,11 +85,10 @@ class AccountData():
 
     def __add__(self, other):
         summed_account = AccountData()
+        #Add the two expense tables together
+        summed_account._expenses=self._expenses+other._expenses
         #Get the unqiue categories from the lists of categories
         unique_categories = list(set(self.categories) | set(other.categories))
-        #Loop through each category, default to an empty list if key doesn't exist in either account data
-        for category in unique_categories:
-            summed_account._expenses[category]=self._expenses.get(category,[])+other._expenses.get(category,[])
         summed_account.categories=unique_categories
         summed_account._sort_dates()
         return summed_account
