@@ -65,7 +65,7 @@ def test_add__is_sorted():
 
 def test_get_timeseries():
     acc_data2 = AccountData(data_path2,cat_path)
-    ts = acc_data2.get_timeseries("cat1")
+    ts = acc_data2.get_timeseries("cat1").data
 
     #The lenght of the timeseries should be the number of number of days between first and last day of data 1
     assert(len(ts)==26)
