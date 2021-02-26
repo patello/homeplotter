@@ -37,10 +37,10 @@ class AccountData():
                         self._expenses[categorizer.match_category(row[5])].append([process_date(row[0]),process_amount(row[1]),category,row[5]])
                 self._sort_dates()
 
-    def get_category(self,category):
+    def get_data(self,category):
         return self._expenses[category]
     
-    def get_category_column(self, category, i):
+    def get_column(self, category, i):
         return [row[i] for row in self._expenses[category]]
 
     def get_timeseries(self,category):
@@ -49,7 +49,7 @@ class AccountData():
         ts_acc_data._expenses = self._expenses
         ts_acc_data._sum_dates()
         ts_acc_data._add_missing_dates()
-        return ts_acc_data.get_category(category)
+        return ts_acc_data.get_data(category)
 
     def _sum_dates(self):
         #Sum all expenses on a given date into one post
@@ -102,5 +102,5 @@ if __name__ == "__main__":
     account_data1 = AccountData("./example_data/data1.csv",cat_file)
     account_data2 = AccountData("./example_data/data2.csv",cat_file)
     summed_account = account_data1 + account_data2
-    print(summed_account.get_category_column("Uncategorized",0))
+    print(summed_account.get_column("Uncategorized",0))
 

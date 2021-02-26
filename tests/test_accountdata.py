@@ -17,24 +17,24 @@ def test_categories():
     #categories property returns the categories defined in categories.json plus "Uncategorized"
     assert(list(acc_data1.categories)==['cat1', 'cat2', 'cat3', 'Uncategorized'])
 
-def test_get_category():
+def test_get_data():
     acc_data1 = AccountData(data_path1,cat_path)
-    #Length of get_category should be the same as the number of cat1 ("A") expenses in data1
-    assert(len(acc_data1.get_category("cat1"))==8)
-    #Length of get_category("Uncategorized") should be the same as the number of uncategorized expenses in data1
-    assert(len(acc_data1.get_category("Uncategorized"))==3)
+    #Length of get_data should be the same as the number of cat1 ("A") expenses in data1
+    assert(len(acc_data1.get_data("cat1"))==8)
+    #Length of get_data("Uncategorized") should be the same as the number of uncategorized expenses in data1
+    assert(len(acc_data1.get_data("Uncategorized"))==3)
 
-def test_get_category__category_is_correct():
+def test_get_data__category_is_correct():
     acc_data1 = AccountData(data_path1,cat_path)
     #When asking for data from a category, all categories should be correct
-    for data in acc_data1.get_category("cat3"):
+    for data in acc_data1.get_data("cat3"):
         assert(data[2]=="cat3")
 
-def test_get_category__is_sorted():
+def test_get_data__is_sorted():
     #Everything should sorted ascending by the first column (date) after initialization
     acc_data1 = AccountData(data_path1,cat_path)
     
-    all_data = acc_data1.get_category("cat1")
+    all_data = acc_data1.get_data("cat1")
     last_date = all_data[0][0]
     for data in all_data[1:]:
         assert(data[0]>=last_date)
@@ -47,9 +47,9 @@ def test_add():
 
     #Categories should not change since both acc_data use the same category file, though order may change (so sorting it)
     assert(sorted(list(acc_data1.categories))==sorted(list(sum_data.categories)))
-    #Length of get_category should be the sum of both
-    assert(len(sum_data.get_category("cat1"))==len(acc_data1.get_category("cat1"))+len(acc_data2.get_category("cat1")))
-    assert(len(sum_data.get_category("Uncategorized"))==len(acc_data1.get_category("Uncategorized"))+len(acc_data2.get_category("Uncategorized")))
+    #Length of get_data should be the sum of both
+    assert(len(sum_data.get_data("cat1"))==len(acc_data1.get_data("cat1"))+len(acc_data2.get_data("cat1")))
+    assert(len(sum_data.get_data("Uncategorized"))==len(acc_data1.get_data("Uncategorized"))+len(acc_data2.get_data("Uncategorized")))
 
 def test_add__is_sorted():
     #Everything should still be sorted ascending by the first column (date) after adding two account data
@@ -57,7 +57,7 @@ def test_add__is_sorted():
     acc_data2 = AccountData(data_path2,cat_path)
     sum_data = acc_data1 + acc_data2
     
-    all_data = sum_data.get_category("cat1")
+    all_data = sum_data.get_data("cat1")
     last_date = all_data[0][0]
     for data in all_data[1:]:
         assert(data[0]>=last_date)
@@ -80,7 +80,7 @@ def test_get_timeseries():
 if __name__=="__main__":
     test_init()
     test_categories()
-    test_get_category()
-    test_get_category__is_sorted()
+    test_get_data()
+    test_get_data__is_sorted()
     test_add()
     test_add__is_sorted()
