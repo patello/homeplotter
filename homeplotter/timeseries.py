@@ -41,5 +41,17 @@ class TimeSeries():
         
     def get_y(self):
         return [data[1] for data in self.data]
+    
+    def accumulate(self,delta):
+        #Loop backwards, if the iterator is not divisible by delta, add its value to cum_sum and delete it.
+        #If its divisible by delta, offload cum_sum.
+        cum_sum = 0
+        for i in reversed(range(len(self.data))):
+            if i % delta == 0:
+                self.data[i][1] += cum_sum
+                cum_sum = 0
+            else:
+                cum_sum += self.data[i][1]
+                del self.data[i]
 
     
