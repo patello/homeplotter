@@ -76,6 +76,17 @@ def test_get_timeseries():
         assert(last_date+datetime.timedelta(1)==data[0])
         last_date = data[0]
 
+def test_get_timeseries__correct_sum():
+    #The total expenses should not change
+    acc_data1 = AccountData(data_path2,cat_path)
+    sum1 = 0
+    for data in acc_data1.get_data("cat1"):
+        sum1+=data[1]
+    sum2 = 0
+    for data in acc_data1.get_timeseries("cat1").data:
+        sum2+=data[1]
+    
+    assert(sum1==sum2)
 
 if __name__=="__main__":
     test_init()
