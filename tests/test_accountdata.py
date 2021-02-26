@@ -23,6 +23,8 @@ def test_get_data():
     assert(len(acc_data1.get_data("cat1"))==8)
     #Length of get_data("Uncategorized") should be the same as the number of uncategorized expenses in data1
     assert(len(acc_data1.get_data("Uncategorized"))==3)
+    #It's ok to call get_data without any category. The lenght should be equal to the sum of length of all other categories.
+    assert(len(acc_data1.get_data())==len(acc_data1.get_data("cat1"))+len(acc_data1.get_data("cat2"))+len(acc_data1.get_data("cat3"))+len(acc_data1.get_data("Uncategorized")))
 
 def test_get_data__category_is_correct():
     acc_data1 = AccountData(data_path1,cat_path)
@@ -64,6 +66,19 @@ def test_add__is_sorted():
         last_date=data[0]
 
 def test_get_timeseries():
+    acc_data2 = AccountData(data_path2,cat_path)
+    ts = acc_data2.get_timeseries("cat1").data
+
+    #The lenght of the timeseries should be the number of number of days between first and last day of data 1
+    assert(len(ts)==26)
+
+    #All dates should be present between the first and the last, an only occur once
+    last_date = ts[0][0]
+    for data in ts[1:]:
+        assert(last_date+datetime.timedelta(1)==data[0])
+        last_date = data[0]
+
+def test_get_timeseries__all_categories():
     acc_data2 = AccountData(data_path2,cat_path)
     ts = acc_data2.get_timeseries("cat1").data
 

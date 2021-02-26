@@ -34,13 +34,16 @@ class AccountData():
                         self._expenses.append([process_date(row[0]),process_amount(row[1]),category,row[5]])
                 self._sort_dates()
 
-    def get_data(self,category):
-        return list(filter(lambda x : x[2]==category,self._expenses))
+    def get_data(self,category=None):
+        if category is not None:
+            return list(filter(lambda x : x[2]==category,self._expenses))
+        else:
+            return list(self._expenses)
     
-    def get_column(self, category, i):
+    def get_column(self, i, category=None):
         return [row[i] for row in self.get_data(category)]
 
-    def get_timeseries(self,category):
+    def get_timeseries(self,category=None):
         return TimeSeries(self.get_data(category))
 
     #Sort date set to private, data that is returned should always be sorted
