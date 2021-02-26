@@ -25,3 +25,20 @@ def test_init__correct_sum():
     for data in ts:
         sum1 += data[1]
     assert(sum1==200+200+400-300+100)
+
+def test_get_x():
+    ts = TimeSeries(sample_data)
+    x = ts.get_x()
+
+    #Every value should be equal to the to the first column in ts.data
+    for i in range(len(x)):
+        assert(x[i]==ts.data[i][0])
+
+def test_get_y():
+    ts = TimeSeries(sample_data)
+    y = ts.get_y()
+
+    #Every value should be equal to the to the first column in ts.data
+    for i in range(len(y)):
+        assert(y[i]==ts.data[i][1])
+

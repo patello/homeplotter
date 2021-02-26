@@ -35,4 +35,11 @@ class TimeSeries():
         self.data=sorted(self.data, key = lambda x: x[0])
         self._sum_dates()
         self._add_missing_dates()
+
+    def get_x(self):
+        return [data[0] for data in self.data]
+        
+    def get_y(self):
+        return [data[1] for data in self.data]
+
     
