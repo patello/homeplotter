@@ -42,12 +42,31 @@ class TimeSeries():
     def get_y(self):
         return [data[1] for data in self.data]
     
-    def accumulate(self,delta):
+    def accumulate(self,delta,forward=False,padding=False):
         #Loop backwards, if the iterator is not divisible by delta, add its value to cum_sum and delete it.
         #If its divisible by delta, offload cum_sum.
+
+        if padding:
+            cur_date = self.data[-1 if forward else 0][0]
+            data_len = len(self.data)
+            for i in range(1,(delta-(data_len%delta))+1):
+                if forward:
+                    self.data.append([cur_date+datetime.timedelta(i),0])
+                else:
+                    self.data.insert(0,[cur_date-datetime.timedelta(i),0])
+
+        if forward:
+            i_offset = 0
+        else:
+            i_offset = delta-(len(self.data)%delta)
+
+        if forward and not padding:
+            del self.data[-(len(self.data)%delta):]
+
+
         cum_sum = 0
-        for i in reversed(range(len(self.data))):
-            if i % delta == 0:
+        for i in range(len(self.data)-1,-1,-1):
+            if (i+i_offset) % delta == 0:
                 self.data[i][1] += cum_sum
                 cum_sum = 0
             else:
