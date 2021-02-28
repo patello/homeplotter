@@ -1,6 +1,14 @@
 import datetime
 
 class TimeSeries():
+    def __init__(self, data):
+        #Only keep date and amount, even if more info is passed
+        self.data=list(map(lambda x: [x[0],x[1]], data))
+        self.data=sorted(self.data, key = lambda x: x[0])
+        self._sum_dates()
+        self._add_missing_dates()
+        self.timedelta = self.data[1][0]-self.data[0][0]
+
     def _sum_dates(self):
         #Sum all expenses on a given date into one post
         i = 0
@@ -29,13 +37,6 @@ class TimeSeries():
         #New dates are added to the end of the list so it needs to be sorted again
         self.data=sorted(self.data, key = lambda x: x[0])
 
-    def __init__(self, data):
-        #Only keep date and amount, even if more info is passed
-        self.data=list(map(lambda x: [x[0],x[1]], data))
-        self.data=sorted(self.data, key = lambda x: x[0])
-        self._sum_dates()
-        self._add_missing_dates()
-
     def get_x(self):
         return [data[0] for data in self.data]
         
@@ -51,9 +52,9 @@ class TimeSeries():
             data_len = len(self.data)
             for i in range(1,(delta-(data_len%delta))+1):
                 if forward:
-                    self.data.append([cur_date+datetime.timedelta(i),0])
+                    self.data.append([cur_date+self.timedelta*i,0])
                 else:
-                    self.data.insert(0,[cur_date-datetime.timedelta(i),0])
+                    self.data.insert(0,[cur_date-self.timedelta*i,0])
 
         if forward:
             i_offset = 0
@@ -71,5 +72,7 @@ class TimeSeries():
             else:
                 cum_sum += self.data[i][1]
                 del self.data[i]
+            
+        self.timedelta = datetime.timedelta(delta)
 
     
