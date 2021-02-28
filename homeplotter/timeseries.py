@@ -46,7 +46,7 @@ class TimeSeries():
         #Loop backwards, if the iterator is not divisible by delta, add its value to cum_sum and delete it.
         #If its divisible by delta, offload cum_sum.
 
-        if padding:
+        if padding and (len(self.data)%delta) != 0:
             cur_date = self.data[-1 if forward else 0][0]
             data_len = len(self.data)
             for i in range(1,(delta-(data_len%delta))+1):
@@ -60,9 +60,8 @@ class TimeSeries():
         else:
             i_offset = delta-(len(self.data)%delta)
 
-        if forward and not padding:
+        if forward and (len(self.data)%delta) != 0:
             del self.data[-(len(self.data)%delta):]
-
 
         cum_sum = 0
         for i in range(len(self.data)-1,-1,-1):
