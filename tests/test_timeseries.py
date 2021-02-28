@@ -88,3 +88,16 @@ def test_accumulate__all(forward,padding):
     assert(ts.get_x()==[sample_data[0][0]])
     assert(ts.get_y()==[200+50+200+400-300+100])
 
+@pytest.mark.parametrize("forward,padding", [(False,False), (False,True), (True,False), (True,True)])
+def test_accumulate__twice(forward,padding):
+    #If you accumulate twice, it should be the same as delta1*delta2
+    ts1 = TimeSeries(sample_data)
+    ts2 = TimeSeries(sample_data)
+    ts1.accumulate(10,forward=forward,padding=padding)
+    ts2.accumulate(2,forward=forward,padding=padding)
+    ts2.accumulate(5,forward=forward,padding=padding)
+
+    assert(len(ts1.data)==len(ts2.data))
+    assert(ts1.get_x()==ts2.get_x())
+    assert(ts1.get_y()==ts2.get_y())
+
