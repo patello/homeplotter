@@ -101,3 +101,29 @@ def test_accumulate__twice(forward,padding):
     assert(ts1.get_x()==ts2.get_x())
     assert(ts1.get_y()==ts2.get_y())
 
+@pytest.mark.parametrize("window", [1,2,3,5,len(sample_data)])
+def test_moving_average__len(window):
+    ts = TimeSeries(sample_data)
+    original_len = len(ts.data)
+    ts.moving_average(window)
+    assert(len(ts.data)==original_len-window+1)
+
+@pytest.mark.parametrize("window", [1,2,3,5,len(sample_data)])
+def test_moving_average__first_day(window):
+    ts = TimeSeries(sample_data)
+    ts.moving_average(window)
+    assert(ts.data[0][0]==sample_data[0][0]+datetime.timedelta(window-1))
+
+@pytest.mark.parametrize("window", [1,2,3,5,len(sample_data)])
+def test_moving_average__last_day(window):
+    ts = TimeSeries(sample_data)
+    original_len = len(ts.data)
+    ts.moving_average(window)
+    assert(ts.data[-1][0]==sample_data[-1][0])
+
+def test_moving_average__first_val():
+    ts = TimeSeries(sample_data)
+    original_len = len(ts.data)
+    ts.moving_average(3)
+    assert(ts.data[0][-1]==(200+50)/3)
+

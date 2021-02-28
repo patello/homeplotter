@@ -75,4 +75,9 @@ class TimeSeries():
             
         self.timedelta = datetime.timedelta(delta)
 
+    def moving_average(self,window):
+        for i in range(window-1,len(self.data)):
+            self.data[i][1]=sum([point[1] for point in self.data[i-window+1:i+1]])/window
+        del self.data[:window-1]
+
     
