@@ -48,7 +48,7 @@ class TimeSeries():
         #If its divisible by delta, offload cum_sum.
         if self.timedelta.days > 1:
             raise NotImplementedError("Accumulating twice is not implemented")
-   
+        
         if delta_unit == "Day":
             date_len = self.data[-1][0]-self.data[0][0]+datetime.timedelta(1)
             if padding and (date_len.days%delta) != 0:
@@ -65,7 +65,7 @@ class TimeSeries():
             if padding and self.data[-1][0].weekday() != 6:
                 self.data.append([self.data[-1][0]+datetime.timedelta(6-self.data[-1][0].weekday()),0])
             elif self.data[-1][0].weekday() != 6:
-                while self.data[-1][0].weekday() != 6:
+                while len(self.data) > 0 and self.data[-1][0].weekday() != 6:
                     del self.data[-1]
             stop_fun = lambda date: date.weekday()==0
         elif delta_unit == "Month":
@@ -74,6 +74,9 @@ class TimeSeries():
                 raise NotImplementedError("delta_unit \"Year\" is not implemented.")
         else:
             raise ValueError("delta_unit must be Day/Week/Month/Year")
+
+        if len(self.data) == 0:
+            raise ValueError("Delta {delta} {delta_unit} larger than number of points in time series".format(delta=delta,delta_unit=delta_unit))
 
         cum_sum = 0
         for i in range(len(self.data)-1,-1,-1):
