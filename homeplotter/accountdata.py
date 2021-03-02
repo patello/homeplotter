@@ -45,6 +45,12 @@ class AccountData():
 
     def get_timeseries(self,category=None):
         return TimeSeries(self.get_data(category))
+    
+    def get_average(self,unit,category=None):
+        ts = TimeSeries(self.get_data(category))
+        ts.accumulate(1,unit)
+        expenses = [data[1] for data in ts.data]
+        return sum(expenses)/len(expenses)
 
     #Sort date set to private, data that is returned should always be sorted
     def _sort_dates(self):

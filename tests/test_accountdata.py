@@ -103,6 +103,14 @@ def test_get_timeseries__correct_sum():
     
     assert(sum1==sum2)
 
+def test_get_average():
+    acc_data = AccountData(data_path1,cat_path)
+    total_expenses = sum([data[1] for data in acc_data.get_data()])
+    days = (acc_data.get_data()[-1][0]-acc_data.get_data()[0][0]).days +1
+
+    assert(acc_data.get_average("Day") == total_expenses/days)
+    assert(acc_data.get_average("Week") == sum([data[1] for data in acc_data.get_data()[1:-1]])/3)
+
 if __name__=="__main__":
     test_init()
     test_categories()
