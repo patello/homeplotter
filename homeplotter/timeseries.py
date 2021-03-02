@@ -85,9 +85,20 @@ class TimeSeries():
             elif self.data[-1][0].day != days_of_prev_month and self.data[-1][0].day != days_of_month:
                 while len(self.data) > 0 and self.data[-1][0].day != days_of_prev_month:
                     del self.data[-1]
-            stop_fun = lambda date: date.day==1        
+            stop_fun = lambda date: date.day==1   
         elif delta_unit == "Year":
-                raise NotImplementedError("delta_unit \"Year\" is not implemented.")
+            if delta != 1:
+                raise NotImplementedError("delta > 1 for delta_unit \"Year\" is not implemented.")
+            if padding and self.data[0][0].day != 1 and self.data[0][0].month != 1:
+                self.data.insert(0,[datetime.date(self.data[0][0].year,1,1),0])
+            if padding and self.data[-1][0].day != 31 and self.data[-1][0].month != 12:
+                self.data.append([datetime.date(self.data[-1][0].year,12,31),0])
+
+            elif self.data[-1][0].month != 12 and self.data[-1][0].day != 31:
+                last_year = self.data[-1][0].year-1
+                while len(self.data) > 0 and self.data[-1][0].year != last_year:
+                    del self.data[-1]
+            stop_fun = lambda date: date.month == 1 and date.day == 1         
         else:
             raise ValueError("delta_unit must be Day/Week/Month/Year")
 
