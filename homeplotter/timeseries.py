@@ -82,7 +82,8 @@ class TimeSeries():
 
             if padding and self.data[-1][0].day != days_of_month:
                 self.data.append([datetime.date(year,month,days_of_month),0])
-            elif self.data[-1][0].day != days_of_prev_month and self.data[-1][0].day != days_of_month:
+
+            elif self.data[-1][0].day != days_of_month:
                 while len(self.data) > 0 and self.data[-1][0].day != days_of_prev_month:
                     del self.data[-1]
             stop_fun = lambda date: date.day==1   
