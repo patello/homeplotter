@@ -45,46 +45,7 @@ def test_get_y():
         assert(y[i]==ts.data[i][1])
 
 @pytest.mark.parametrize("padding", [False,True])
-def test_accumulate__len(padding):
-    #Number of points should be ceil(original length/delta) with padding, otherwise floor(original length/delta)
-    ts = TimeSeries(sample_data)
-    original_len = len(ts.data)
-    ts.accumulate(3,padding=padding)
-    assert(len(ts.data)==(math.ceil(original_len/3) if padding else math.floor(original_len/3)))
-
-@pytest.mark.parametrize("padding,expected_timedelta", [(False, (11%3)), (True,-(3-11%3))])
-def test_accumulate__start_date(padding,expected_timedelta):
-    ts = TimeSeries(sample_data)
-    ts.accumulate(3,padding=padding)
-    assert(ts.get_x()[0]==sample_data[0][0]+datetime.timedelta(expected_timedelta))
-
-@pytest.mark.parametrize("padding", [False, True])
-def test_accumulate__end_date(padding):
-    ts = TimeSeries(sample_data)
-    ts.accumulate(3,padding=padding)
-    assert(ts.get_x()[-1]==sample_data[-1][0]+datetime.timedelta(-2))
-
-@pytest.mark.parametrize("padding,expected_first_sum,expected_last_sum", [(False,0+0+0,100+0-300), (True,0+200+50,100+0-300)])
-def test_accumulate__sum(padding,expected_first_sum,expected_last_sum):
-    #If padding false, the first day should be skipped (in this case)
-    #If padding is true, only the first day should be summed (together with two empty days)
-    ts = TimeSeries(sample_data)
-    ts.accumulate(3,padding=padding)
-    assert(ts.get_y()[0]==expected_first_sum)
-    assert(ts.get_y()[-1]==expected_last_sum)
-
-@pytest.mark.parametrize("padding", [False,True])
-def test_accumulate__all(padding):
-    #Accumulating the whole interval should yeild just one data point, the first date, with the total sum of sample data, regardless of padding
-    ts = TimeSeries(sample_data)
-    ts.accumulate(len(ts.data),padding=padding)
-
-    assert(len(ts.data)==1)
-    assert(ts.get_x()==[sample_data[0][0]])
-    assert(ts.get_y()==[200+50+200+400-300+100])
-
-@pytest.mark.parametrize("padding", [False,True])
-def test_accumulate__twice(padding):
+def test_accumulate_twice(padding):
     #If you accumulate twice, it should be the same as delta1*delta2
     #This is unimplemented
     ts1 = TimeSeries(sample_data)
