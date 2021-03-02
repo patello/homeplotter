@@ -43,21 +43,23 @@ class TimeSeries():
     def get_y(self):
         return [data[1] for data in self.data]
     
-    def accumulate(self,delta,padding=False):
+    def accumulate(self,delta,delta_unit="Day",padding=False):
         #Loop backwards, if the iterator is not divisible by delta, add its value to cum_sum and delete it.
         #If its divisible by delta, offload cum_sum.
-
-        if padding and (len(self.data)%delta) != 0:
-            cur_date = self.data[0][0]
-            data_len = len(self.data)
-            for i in range(1,(delta-(data_len%delta))+1):
-                self.data.insert(0,[cur_date-self.timedelta*i,0])
-
-        i_offset = delta-(len(self.data)%delta)
+ 
+        if delta_unit == "Day":
+            date_len = self.data[-1][0]-self.data[0][0]+datetime.timedelta(1)
+            if padding and (date_len.days%delta) != 0:
+                self.data.insert(0,[self.data[0][0]-datetime.timedelta(delta-(date_len.days%delta)),0])
+                date_len = self.data[-1][0]-self.data[0][0]+datetime.timedelta(1)
+            end_date = self.data[-1][0]
+            stop_fun = lambda date: (delta-((end_date-date).days+1))%delta == 0
+        else:
+            raise ValueError("delta_unit must be Day/Week/Month/Year")
 
         cum_sum = 0
         for i in range(len(self.data)-1,-1,-1):
-            if (i+i_offset) % delta == 0:
+            if stop_fun(self.data[i][0]):
                 self.data[i][1] += cum_sum
                 cum_sum = 0
             else:
