@@ -46,7 +46,9 @@ class TimeSeries():
     def accumulate(self,delta,delta_unit="Day",padding=False):
         #Loop backwards, if the iterator is not divisible by delta, add its value to cum_sum and delete it.
         #If its divisible by delta, offload cum_sum.
- 
+        if self.timedelta.days > 1:
+            raise NotImplementedError("Accumulating twice is not implemented")
+   
         if delta_unit == "Day":
             date_len = self.data[-1][0]-self.data[0][0]+datetime.timedelta(1)
             if padding and (date_len.days%delta) != 0:
@@ -54,6 +56,22 @@ class TimeSeries():
                 date_len = self.data[-1][0]-self.data[0][0]+datetime.timedelta(1)
             end_date = self.data[-1][0]
             stop_fun = lambda date: (delta-((end_date-date).days+1))%delta == 0
+        elif delta_unit == "Week":
+            if delta != 1:
+                raise NotImplementedError("delta > 1 for delta_unit \"Week\" is not implemented.")
+            #Need to add some logic if it is 1 week, two weeks, etc
+            if padding and self.data[0][0].weekday() != 0:
+                self.data.insert(0,[self.data[0][0]-datetime.timedelta(self.data[0][0].weekday()),0])
+            if padding and self.data[-1][0].weekday() != 6:
+                self.data.append([self.data[-1][0]+datetime.timedelta(6-self.data[-1][0].weekday()),0])
+            elif self.data[-1][0].weekday() != 6:
+                while self.data[-1][0].weekday() != 6:
+                    del self.data[-1]
+            stop_fun = lambda date: date.weekday()==0
+        elif delta_unit == "Month":
+                raise NotImplementedError("delta_unit \"Month\" is not implemented.")
+        elif delta_unit == "Month":
+                raise NotImplementedError("delta_unit \"Year\" is not implemented.")
         else:
             raise ValueError("delta_unit must be Day/Week/Month/Year")
 
@@ -65,8 +83,7 @@ class TimeSeries():
             else:
                 cum_sum += self.data[i][1]
                 del self.data[i]
-            
-        self.timedelta = datetime.timedelta(delta)
+        self.timedelta = self.data[1][0]-self.data[0][0] if len(self.data) > 1 else datetime.timedelta(-1)
 
     def moving_average(self,window):
         for i in range(window-1,len(self.data)):
