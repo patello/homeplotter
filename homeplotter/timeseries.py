@@ -1,4 +1,5 @@
 import datetime
+import calendar
 
 class TimeSeries():
     def __init__(self, data):
@@ -69,8 +70,23 @@ class TimeSeries():
                     del self.data[-1]
             stop_fun = lambda date: date.weekday()==0
         elif delta_unit == "Month":
-                raise NotImplementedError("delta_unit \"Month\" is not implemented.")
-        elif delta_unit == "Month":
+            if delta != 1:
+                raise NotImplementedError("delta > 1 for delta_unit \"Month\" is not implemented.")
+            if padding and self.data[0][0].day != 1:
+                self.data.insert(0,[datetime.date(self.data[0][0].year,self.data[0][0].month,1),0])
+
+            month = self.data[-1][0].month
+            year = self.data[-1][0].year
+            days_of_month = calendar.monthrange(year,month)[1]
+            days_of_prev_month = calendar.monthrange(year if month > 1 else year - 1,month - 1 if month > 1 else 12)[1]
+
+            if padding and self.data[-1][0].day != days_of_month:
+                self.data.append([datetime.date(year,month,days_of_month),0])
+            elif self.data[-1][0].day != days_of_prev_month and self.data[-1][0].day != days_of_month:
+                while len(self.data) > 0 and self.data[-1][0].day != days_of_prev_month:
+                    del self.data[-1]
+            stop_fun = lambda date: date.day==1        
+        elif delta_unit == "Year":
                 raise NotImplementedError("delta_unit \"Year\" is not implemented.")
         else:
             raise ValueError("delta_unit must be Day/Week/Month/Year")
