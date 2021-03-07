@@ -19,6 +19,9 @@ class AccountData():
     def __init__(self, account_file=None, cat_file=None, **kwds):
         self._expenses = []
         self.categories = []
+
+        self.columns = {"date":0,"amount":1,"category":2,"text":3}
+        self.column_types = {0:[datetime.date],1:[float,int],2:[str],3:[str]}
         
         if cat_file is not None:
             categorizer = Categorizer(cat_file)
@@ -33,15 +36,47 @@ class AccountData():
                         category=categorizer.match_category(row[5])
                         self._expenses.append([process_date(row[0]),process_amount(row[1]),category,row[5]])
                 self._sort_dates()
+        
+        self._f_expenses = self._expenses.copy()
 
     def get_data(self,category=None):
         if category is not None:
-            return list(filter(lambda x : x[2]==category,self._expenses))
+            return list(filter(lambda x : x[2]==category,self._f_expenses))
         else:
-            return list(self._expenses)
+            return list(self._f_expenses)
+
+    def filter_data(self,column,operator,value):
+
+        if column in self.columns:
+            col_i = self.columns[column]
+            if not any(type(value)==supported_type for supported_type in self.column_types[col_i]):
+                raise ValueError("Unsupported type {type} for column \"{column}\". Supported types: {supported_types}".format(
+                    type=type(value),column=column,supported_types=", ".join([str(typ) for typ in self.column_types[col_i]])))
+        else:
+            raise ValueError("Unsuported column \"{column}\".".format(column=column))
+
+        if operator == "==":
+            filter_fun = lambda data:data[col_i] == value
+        elif type(value) == str:
+            raise ValueError("Unsuported operator \"{operator}\" for string. Only == is supported.".format(operator=operator)) 
+        elif operator == ">=":
+            filter_fun = lambda data:data[col_i] >= value
+        elif operator == ">":   
+            filter_fun = lambda data:data[col_i] > value
+        elif operator == "<":
+            filter_fun = lambda data:data[col_i] < value
+        elif operator == "<=":
+            filter_fun = lambda data:data[col_i] <= value
+        else:
+            raise ValueError("Unsuported operator \"{operator}\". Only ==, >=, >, < and <= are supported.".format(operator=operator))
+
+        self._f_expenses=filter(filter_fun,self._f_expenses)
     
-    def get_column(self, i, category=None):
-        return [row[i] for row in self.get_data(category)]
+    def reset_filter(self):
+        self._f_expenses = self._expenses.copy()
+
+    def get_column(self, column, category=None):
+        return [row[self.columns[column]] for row in self.get_data(category)]
 
     def get_timeseries(self,category=None):
         return TimeSeries(self.get_data(category))
@@ -64,6 +99,7 @@ class AccountData():
         unique_categories = list(set(self.categories) | set(other.categories))
         summed_account.categories=unique_categories
         summed_account._sort_dates()
+        summed_account._f_expenses=summed_account._expenses.copy()
         return summed_account
 
 if __name__ == "__main__":
