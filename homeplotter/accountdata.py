@@ -57,8 +57,10 @@ class AccountData():
 
         if operator == "==":
             filter_fun = lambda data:data[col_i] == value
+        elif operator == "!=":
+            filter_fun = lambda data:data[col_i] != value
         elif type(value) == str:
-            raise ValueError("Unsuported operator \"{operator}\" for string. Only == is supported.".format(operator=operator)) 
+            raise ValueError("Unsuported operator \"{operator}\" for string. Only == and != is supported.".format(operator=operator)) 
         elif operator == ">=":
             filter_fun = lambda data:data[col_i] >= value
         elif operator == ">":   

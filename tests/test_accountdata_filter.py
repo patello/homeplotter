@@ -17,7 +17,7 @@ def test_filter__date():
 
     assert(acc_data1.get_column("date")[0] == next_date)
 
-@pytest.mark.parametrize("fun",[">",">=","==","<=","<"] )
+@pytest.mark.parametrize("fun",[">",">=","==","!=","<=","<"] )
 def test_filter__amount(fun):
     acc_data1 = AccountData(data_path1,cat_path)
     acc_data1.filter_data("amount",fun,200)
@@ -28,6 +28,8 @@ def test_filter__amount(fun):
             assert(amount>=200)
         elif fun == "==":
             assert(amount==200)
+        elif fun == "!=":
+            assert(amount!=200)
         elif fun == "<=":
             assert(amount<=200)
         elif fun == "<":
@@ -42,6 +44,7 @@ def test_filter__type_ok():
     acc_data1 = AccountData(data_path1,cat_path)
     acc_data1.filter_data("amount",">",100)
     acc_data1.filter_data("amount",">",200.5)
+    acc_data1.filter_data("text","!=","test")
     acc_data1.filter_data("category","==","cat1")
     acc_data1.filter_data("date",">",datetime.date(2021,1,4))
 
