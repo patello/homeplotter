@@ -111,6 +111,10 @@ def test_get_average():
     assert(acc_data.get_average("Day") == total_expenses/days)
     assert(acc_data.get_average("Week") == sum([data[1] for data in acc_data.get_data()[1:-1]])/3)
 
+def test_get_categories():
+    acc_data = AccountData(data_path1,cat_path)
+    assert(sorted(acc_data.get_categories())==["Uncategorized","cat1","cat2","cat3"])
+
 if __name__=="__main__":
     test_init()
     test_categories()

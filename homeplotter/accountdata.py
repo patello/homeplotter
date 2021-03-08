@@ -89,6 +89,13 @@ class AccountData():
         expenses = [data[1] for data in ts.data]
         return sum(expenses)/len(expenses)
 
+    def get_categories(self):
+        categories = []
+        for data in self._f_expenses:
+            if data[2] not in categories:
+                categories.append(data[2])
+        return categories
+
     #Sort date set to private, data that is returned should always be sorted
     def _sort_dates(self):
         self._expenses=sorted(self._expenses, key = lambda l:l[0])

@@ -68,3 +68,11 @@ def test_reset_filter():
     reset_data = acc_data1.get_data()
     assert(original_data==reset_data)
     assert(reset_data!=filtered_data)
+
+def test_filter__categories():
+    acc_data = AccountData(data_path1,cat_path)
+    acc_data.filter_data("category","!=","cat1")
+    assert("cat1" not in acc_data.get_categories())
+    acc_data.filter_data("category","==","cat3")
+    assert(acc_data.get_categories()==["cat3"])
+
