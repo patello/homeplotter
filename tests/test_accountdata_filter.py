@@ -3,6 +3,7 @@ import datetime
 import pytest
 
 from homeplotter.accountdata import AccountData
+from homeplotter.timeseries import TimeSeries
 
 resource_path = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', 'example_data'))
 cat_path = os.path.join(resource_path,"categories.json")
@@ -75,4 +76,15 @@ def test_filter__categories():
     assert("cat1" not in acc_data.get_categories())
     acc_data.filter_data("category","==","cat3")
     assert(acc_data.get_categories()==["cat3"])
+
+def test_filter__empty():
+    #If filtering twice with an inverted filter the result should be empty
+    acc_data = AccountData(data_path1,cat_path)
+    acc_data.filter_data("amount",">=",300)
+    acc_data.filter_data("amount","<",300)
+    assert(len(acc_data.get_data())==0)
+    #Categories should also be empty
+    assert(len(acc_data.get_categories())==0)
+    #It should be possible to still call get_timeseries()
+    assert(type(acc_data.get_timeseries())==TimeSeries)
 

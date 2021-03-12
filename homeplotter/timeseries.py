@@ -8,7 +8,9 @@ class TimeSeries():
         self.data=sorted(self.data, key = lambda x: x[0])
         self._sum_dates()
         self._add_missing_dates()
-        self.timedelta = self.data[1][0]-self.data[0][0]
+        #If data is too short, give time delta 0 (next best thing instead of infinity which it can't handle)
+        #This will definately come back and haunt me later
+        self.timedelta = self.data[1][0]-self.data[0][0] if len(data) >= 2 else datetime.timedelta(0)
 
     def _sum_dates(self):
         #Sum all expenses on a given date into one post
@@ -49,6 +51,10 @@ class TimeSeries():
         #If its divisible by delta, offload cum_sum.
         if self.timedelta.days > 1:
             raise NotImplementedError("Accumulating twice is not implemented")
+
+        if len(self.data)<2:
+            #If data is less than 2 data points, accumulate doesn't change the data.
+            return 
         
         if delta_unit == "Day":
             date_len = self.data[-1][0]-self.data[0][0]+datetime.timedelta(1)

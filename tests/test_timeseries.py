@@ -7,26 +7,31 @@ from homeplotter.timeseries import TimeSeries
 sample_data = [[datetime.date(2020, 12, 23), 200.0],[datetime.date(2020, 12, 24), 50.0],[datetime.date(2020, 12, 30), 200.0], [datetime.date(2020, 12, 30), 400.0], [datetime.date(2020, 12, 31), -300], [datetime.date(2021, 1, 2), 100]]
 
 def test_init__length():
-    ts = TimeSeries(sample_data).data
+    ts = TimeSeries(sample_data)
 
     #The lenght of the timeseries should be the number of number of days between first and last day of data 1
-    assert(len(ts)==11)
+    assert(len(ts.data)==11)
 
 def test_init__no_missing_dates():
-    ts = TimeSeries(sample_data).data
+    ts = TimeSeries(sample_data)
     #All dates should be present between the first and the last, an only occur once
-    last_date = ts[0][0]
-    for data in ts[1:]:
+    last_date = ts.data[0][0]
+    for data in ts.data[1:]:
         assert(last_date+datetime.timedelta(1)==data[0])
         last_date = data[0]
 
 def test_init__correct_sum():
-    ts = TimeSeries(sample_data).data
+    ts = TimeSeries(sample_data)
     #The total should be the sum of all the individual posts in sample_data
     sum1 = 0
-    for data in ts:
+    for data in ts.data:
         sum1 += data[1]
     assert(sum1==200+50+200+400-300+100)
+
+def test_init__empty():
+    #It should be possible to initialize with an empty list
+    ts = TimeSeries([])
+    assert(ts.data==[])
 
 def test_get_x():
     ts = TimeSeries(sample_data)
@@ -59,6 +64,12 @@ def test_accumulate_twice(padding):
     # assert(ts1.get_x()==ts2.get_x())
     # assert(ts1.get_y()==ts2.get_y())
 
+def test_accumulate__empty():
+    #It should be possible to initialize with an empty list
+    ts = TimeSeries([])
+    ts.accumulate(2)
+    assert(ts.data==[])
+
 @pytest.mark.parametrize("window", [1,2,3,5,len(sample_data)])
 def test_moving_average__len(window):
     ts = TimeSeries(sample_data)
@@ -85,3 +96,8 @@ def test_moving_average__first_val():
     ts.moving_average(3)
     assert(ts.data[0][-1]==(200+50)/3)
 
+def test_moving_average__empty():
+    #It should be possible to initialize with an empty list
+    ts = TimeSeries([])
+    ts.moving_average(3)
+    assert(ts.data==[])
