@@ -72,7 +72,7 @@ class AccountData():
         else:
             raise ValueError("Unsuported operator \"{operator}\". Only ==, >=, >, < and <= are supported.".format(operator=operator))
 
-        self._f_expenses=filter(filter_fun,self._f_expenses)
+        self._f_expenses=list(filter(filter_fun,self._f_expenses))
     
     def reset_filter(self):
         self._f_expenses = self._expenses.copy()
