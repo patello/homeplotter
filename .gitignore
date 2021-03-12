@@ -1,5 +1,7 @@
 # data folder contains personal data, ignore it
 data/
+output/
+uncategorized.py
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
