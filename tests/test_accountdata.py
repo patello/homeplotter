@@ -5,6 +5,7 @@ from homeplotter.accountdata import AccountData
 
 resource_path = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', 'example_data'))
 cat_path = os.path.join(resource_path,"categories.json")
+tag_path = os.path.join(resource_path,"tags.json")
 data_path1 = os.path.join(resource_path,"data1.csv")
 data_path2 = os.path.join(resource_path,"data2.csv")
 
@@ -109,6 +110,10 @@ def test_get_average():
 def test_get_categories():
     acc_data = AccountData(data_path1,cat_path)
     assert(sorted(acc_data.get_categories())==["Uncategorized","cat1","cat2","cat3"])
+
+def test_get_tags():
+    acc_data = AccountData(data_path1,tag_file=tag_path)
+    assert(sorted(acc_data.get_tags())==["tag1","tag2","tag3","överföring"])
 
 if __name__=="__main__":
     test_init()

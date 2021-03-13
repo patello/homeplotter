@@ -16,24 +16,28 @@ def process_amount(amount_string):
     return amount        
 
 class AccountData():
-    def __init__(self, account_file=None, cat_file=None, **kwds):
+    def __init__(self, account_file=None, cat_file=None, tag_file = None, **kwds):
         self._expenses = []
 
-        self.columns = {"date":0,"amount":1,"category":2,"text":3}
+        self.columns = {"date":0,"amount":1,"category":2,"text":3,"tags":4}
         self.column_types = {0:[datetime.date],1:[float,int],2:[str],3:[str]}
         
         if cat_file is not None:
             categorizer = Categorizer(cat_file)
 
-            if account_file is not None:    
-                with open(account_file, newline='') as csvfile:
-                    accountreader = csv.reader(csvfile, delimiter=';')
-                    #Skip the header line by first calling next
-                    next(accountreader,None)
-                    for row in accountreader:
-                        category=categorizer.match(row[5])
-                        self._expenses.append([process_date(row[0]),process_amount(row[1]),category,row[5]])
-                self._sort_dates()
+        if tag_file is not None:
+            tagger = Categorizer(tag_file,mode="tag")
+            
+        if account_file is not None:    
+            with open(account_file, newline='') as csvfile:
+                accountreader = csv.reader(csvfile, delimiter=';')
+                #Skip the header line by first calling next
+                next(accountreader,None)
+                for row in accountreader:
+                    category=categorizer.match(row[5]) if 'categorizer' in locals() else "Uncategorized"
+                    tags=tagger.match(row[5]) if 'tagger' in locals() else []
+                    self._expenses.append([process_date(row[0]),process_amount(row[1]),category,row[5],tags])
+            self._sort_dates()
         
         self._f_expenses = self._expenses.copy()
 
@@ -93,6 +97,15 @@ class AccountData():
             if data[2] not in categories:
                 categories.append(data[2])
         return categories
+
+    def get_tags(self):
+        tags = []
+        for data in self._f_expenses:
+            for tag in data[4]:
+                if tag not in tags:
+                    tags.append(tag)
+        return tags
+
 
     #Sort date set to private, data that is returned should always be sorted
     def _sort_dates(self):
