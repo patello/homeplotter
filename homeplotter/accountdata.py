@@ -33,7 +33,7 @@ class AccountData():
                     #Skip the header line by first calling next
                     next(accountreader,None)
                     for row in accountreader:
-                        category=categorizer.match_category(row[5])
+                        category=categorizer.match(row[5])
                         self._expenses.append([process_date(row[0]),process_amount(row[1]),category,row[5]])
                 self._sort_dates()
         
