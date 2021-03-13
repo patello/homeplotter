@@ -12,11 +12,6 @@ def test_init():
     acc_data1 = AccountData(data_path1,cat_path)
     acc_data2 = AccountData(data_path2,cat_path)
 
-def test_categories():
-    acc_data1 = AccountData(data_path1,cat_path)
-    #categories property returns the categories defined in categories.json plus "Uncategorized"
-    assert(list(acc_data1.categories)==['cat1', 'cat2', 'cat3', 'Uncategorized'])
-
 def test_get_data():
     acc_data1 = AccountData(data_path1,cat_path)
     #Length of get_data should be the same as the number of cat1 ("A") expenses in data1
@@ -48,7 +43,7 @@ def test_add():
     sum_data = acc_data1 + acc_data2
 
     #Categories should not change since both acc_data use the same category file, though order may change (so sorting it)
-    assert(sorted(list(acc_data1.categories))==sorted(list(sum_data.categories)))
+    assert(sorted(list(acc_data1.get_categories()))==sorted(list(sum_data.get_categories())))
     #Length of get_data should be the sum of both
     assert(len(sum_data.get_data("cat1"))==len(acc_data1.get_data("cat1"))+len(acc_data2.get_data("cat1")))
     assert(len(sum_data.get_data("Uncategorized"))==len(acc_data1.get_data("Uncategorized"))+len(acc_data2.get_data("Uncategorized")))

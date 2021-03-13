@@ -18,14 +18,12 @@ def process_amount(amount_string):
 class AccountData():
     def __init__(self, account_file=None, cat_file=None, **kwds):
         self._expenses = []
-        self.categories = []
 
         self.columns = {"date":0,"amount":1,"category":2,"text":3}
         self.column_types = {0:[datetime.date],1:[float,int],2:[str],3:[str]}
         
         if cat_file is not None:
             categorizer = Categorizer(cat_file)
-            self.categories = categorizer.categories()
 
             if account_file is not None:    
                 with open(account_file, newline='') as csvfile:
@@ -105,8 +103,6 @@ class AccountData():
         #Add the two expense tables together
         summed_account._expenses=self._expenses+other._expenses
         #Get the unqiue categories from the lists of categories
-        unique_categories = list(set(self.categories) | set(other.categories))
-        summed_account.categories=unique_categories
         summed_account._sort_dates()
         summed_account._f_expenses=summed_account._expenses.copy()
         return summed_account
