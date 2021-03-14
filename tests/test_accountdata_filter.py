@@ -7,6 +7,7 @@ from homeplotter.timeseries import TimeSeries
 
 resource_path = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', 'example_data'))
 cat_path = os.path.join(resource_path,"categories.json")
+tag_path = os.path.join(resource_path,"tags.json")
 data_path1 = os.path.join(resource_path,"data1.csv")
 data_path2 = os.path.join(resource_path,"data2.csv")
 
@@ -76,6 +77,19 @@ def test_filter__categories():
     assert("cat1" not in acc_data.get_categories())
     acc_data.filter_data("category","==","cat3")
     assert(acc_data.get_categories()==["cat3"])
+
+def test_filter__tags():
+    acc_data = AccountData(data_path1,tag_file=tag_path)
+    acc_data.filter_data("tags","!=","tag1")
+    assert("tag1" not in acc_data.get_tags())
+    acc_data.filter_data("tags","==","tag3")
+    assert(acc_data.get_tags()==["tag3"])
+
+def test_filter__multi_tags():
+    #If a data point has multiple tags, those tags should be preserved
+    acc_data = AccountData(data_path1,tag_file=tag_path)
+    acc_data.filter_data("tags","==","överföring")
+    assert(len(acc_data.get_tags())>1)
 
 def test_filter__empty():
     #If filtering twice with an inverted filter the result should be empty

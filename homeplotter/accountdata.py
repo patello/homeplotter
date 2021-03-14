@@ -20,7 +20,7 @@ class AccountData():
         self._expenses = []
 
         self.columns = {"date":0,"amount":1,"category":2,"text":3,"tags":4}
-        self.column_types = {0:[datetime.date],1:[float,int],2:[str],3:[str]}
+        self.column_types = {0:datetime.date,1:float,2:str,3:str,4:list}
         
         if cat_file is not None:
             categorizer = Categorizer(cat_file)
@@ -48,20 +48,33 @@ class AccountData():
             return list(self._f_expenses)
 
     def filter_data(self,column,operator,value):
+        #Dict which defines which values are accepted for different column types
+        acc_types = {
+            datetime.date:[datetime.date],
+            float:[float,int],
+            str:[str],
+            list:[str],
+        }
 
         if column in self.columns:
             col_i = self.columns[column]
-            if not any(type(value)==supported_type for supported_type in self.column_types[col_i]):
+            col_type = self.column_types[col_i]
+            val_type = type(value)
+            if not any(val_type==supported_type for supported_type in acc_types[col_type]):
                 raise ValueError("Unsupported type {type} for column \"{column}\". Supported types: {supported_types}".format(
-                    type=type(value),column=column,supported_types=", ".join([str(typ) for typ in self.column_types[col_i]])))
+                    type=val_type,column=column,supported_types=", ".join([str(typ) for typ in acc_types[col_type]])))
         else:
             raise ValueError("Unsuported column \"{column}\".".format(column=column))
 
-        if operator == "==":
+        if operator == "==" and col_type != list:
             filter_fun = lambda data:data[col_i] == value
-        elif operator == "!=":
+        elif operator == "==" and col_type == list:
+            filter_fun = lambda data:value in data[col_i]
+        elif operator == "!=" and col_type != list:
             filter_fun = lambda data:data[col_i] != value
-        elif type(value) == str:
+        elif operator == "!=" and col_type == list:
+            filter_fun = lambda data:value not in data[col_i]
+        elif val_type == str or val_type == list:
             raise ValueError("Unsuported operator \"{operator}\" for string. Only == and != is supported.".format(operator=operator)) 
         elif operator == ">=":
             filter_fun = lambda data:data[col_i] >= value
