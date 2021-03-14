@@ -53,7 +53,7 @@ class AccountData():
             datetime.date:[datetime.date],
             float:[float,int],
             str:[str],
-            list:[str],
+            list:[list,str],
         }
 
         if column in self.columns:
@@ -68,12 +68,22 @@ class AccountData():
 
         if operator == "==" and col_type != list:
             filter_fun = lambda data:data[col_i] == value
-        elif operator == "==" and col_type == list:
+        elif operator == "==" and col_type == list and val_type == str:
             filter_fun = lambda data:value in data[col_i]
+        elif operator == "==" and col_type == list and val_type == list:
+            if len(value)>0:
+                filter_fun = lambda data: all(v in data[col_i] for v in value)
+            else:
+                filter_fun = lambda data: len(data[col_i])==0
         elif operator == "!=" and col_type != list:
             filter_fun = lambda data:data[col_i] != value
-        elif operator == "!=" and col_type == list:
+        elif operator == "!=" and col_type == list and val_type == str:
             filter_fun = lambda data:value not in data[col_i]
+        elif operator == "!=" and col_type == list and val_type == list:
+            if len(value)>0:
+                filter_fun = lambda data: all(d in value for d in data[col_i])
+            else:
+                filter_fun = lambda data: len(data[col_i])!=0
         elif val_type == str or val_type == list:
             raise ValueError("Unsuported operator \"{operator}\" for string. Only == and != is supported.".format(operator=operator)) 
         elif operator == ">=":

@@ -18,7 +18,7 @@ def test_get_data():
     #Length of get_data should be the same as the number of cat1 ("A") expenses in data1
     assert(len(acc_data1.get_data("cat1"))==8)
     #Length of get_data("Uncategorized") should be the same as the number of uncategorized expenses in data1
-    assert(len(acc_data1.get_data("Uncategorized"))==3)
+    assert(len(acc_data1.get_data("Uncategorized"))==4)
     #It's ok to call get_data without any category. The lenght should be equal to the sum of length of all other categories.
     assert(len(acc_data1.get_data())==len(acc_data1.get_data("cat1"))+len(acc_data1.get_data("cat2"))+len(acc_data1.get_data("cat3"))+len(acc_data1.get_data("Uncategorized")))
 

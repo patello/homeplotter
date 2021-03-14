@@ -91,6 +91,37 @@ def test_filter__multi_tags():
     acc_data.filter_data("tags","==","överföring")
     assert(len(acc_data.get_tags())>1)
 
+def test_filter__tag_list():
+    acc_data = AccountData(data_path1,tag_file=tag_path)
+    acc_data.filter_data("tags","==",["tag1","överföring"])
+    #Should only contain the once that contains all the tags.
+    assert(sorted(acc_data.get_tags())==sorted(["tag1","överföring"]))
+
+def test_filter__multi_tags_list():
+    #If a data point has multiple tags, those tags should be preserved even if list is used
+    acc_data = AccountData(data_path1,tag_file=tag_path)
+    acc_data.filter_data("tags","==",["överföring"])
+    assert(len(acc_data.get_tags())>1)
+
+def test_filter__tag_empty():
+    acc_data = AccountData(data_path1,tag_file=tag_path)
+    #Should only return those that lack any tags.
+    acc_data.filter_data("tags","==",[])
+    assert(acc_data.get_tags()==[])
+    assert(len(acc_data.get_data())>0)
+
+def test_filter__not_tag_list():
+    acc_data = AccountData(data_path1,tag_file=tag_path)
+    acc_data.filter_data("tags","!=",["tag1","överföring"])
+    #Should still contain överföring, just not any that also tag1
+    assert("överföring" in acc_data.get_tags())
+
+def test_filter__not_tag_empty():
+    acc_data = AccountData(data_path1,tag_file=tag_path)
+    #Should only return those that has tags
+    acc_data.filter_data("tags","!=",[])
+    assert(all(len(tags)>0 for tags in acc_data.get_column("tags")))
+
 def test_filter__empty():
     #If filtering twice with an inverted filter the result should be empty
     acc_data = AccountData(data_path1,cat_path)
