@@ -49,6 +49,13 @@ def test_add():
     assert(len(sum_data.get_data("cat1"))==len(acc_data1.get_data("cat1"))+len(acc_data2.get_data("cat1")))
     assert(len(sum_data.get_data("Uncategorized"))==len(acc_data1.get_data("Uncategorized"))+len(acc_data2.get_data("Uncategorized")))
 
+def test_div():
+    acc_data = AccountData(data_path1,cat_path)
+    acc_data_div = acc_data/2
+
+    assert(sum(acc_data.get_column("amount"))/2==sum(acc_data_div.get_column("amount")))
+    assert(len(acc_data.get_data())==len(acc_data_div.get_data()))
+
 def test_add__is_sorted():
     #Everything should still be sorted ascending by the first column (date) after adding two account data
     acc_data1 = AccountData(data_path1,cat_path)

@@ -1,6 +1,7 @@
 import csv
 import re
 import datetime
+import copy
 
 from homeplotter.categorizer import Categorizer
 from homeplotter.timeseries import TimeSeries
@@ -142,6 +143,17 @@ class AccountData():
         summed_account._sort_dates()
         summed_account._f_expenses=summed_account._expenses.copy()
         return summed_account
+
+    def __truediv__(self, divisor):
+        quotient = AccountData()
+        #Needs to deep copy, otherwise the elements in the list are the same id.
+        quotient._expenses=copy.deepcopy(self._expenses)
+        amount_col = quotient.columns["amount"]
+        for i in range(len(quotient._expenses)):
+            quotient._expenses[i][amount_col]=quotient._expenses[i][amount_col]/divisor
+        quotient._f_expenses=quotient._expenses.copy()
+        return quotient
+
 
 if __name__ == "__main__":
     cat_file="./example_data/categories.json"
