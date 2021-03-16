@@ -12,7 +12,6 @@ def test_match_category():
     assert(categorizer.match("Kortköp 20210101 A2")=="cat1")
     assert(categorizer.match("B1")=="cat2")
     assert(categorizer.match("A*2")=="cat1")
-    assert(categorizer.match("B*2")=="Uncategorized")
     assert(categorizer.match("Some random words")=="Uncategorized")
 
 def test_match_tag():
