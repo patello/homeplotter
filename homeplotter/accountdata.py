@@ -17,8 +17,11 @@ def process_amount(amount_string):
     return amount        
 
 class AccountData():
-    def __init__(self, account_file=None, cat_file=None, tag_file = None, **kwds):
-        self._expenses = []
+    def __init__(self, account_file=None, cat_file=None, tag_file = None, expense_data = None, **kwds):
+        if expense_data is None:
+            self._expenses = []
+        else:
+            self._expenses = expense_data
 
         self.columns = {"date":0,"amount":1,"category":2,"text":3,"tags":4}
         self.column_types = {0:datetime.date,1:float,2:str,3:str,4:list}
@@ -38,9 +41,9 @@ class AccountData():
                     category=categorizer.match(row[5]) if 'categorizer' in locals() else "Uncategorized"
                     tags=tagger.match(row[5]) if 'tagger' in locals() else []
                     self._expenses.append([process_date(row[0]),process_amount(row[1]),category,row[5],tags])
-            self._sort_dates()
         
-        self._f_expenses = self._expenses.copy()
+        self._sort_dates()
+        self.reset_filter()
 
     def get_data(self,category=None):
         if category is not None:
@@ -139,23 +142,16 @@ class AccountData():
         self._expenses=sorted(self._expenses, key = lambda l:l[0])
 
     def __add__(self, other):
-        summed_account = AccountData()
-        #Add the two expense tables together
-        summed_account._expenses=self._expenses+other._expenses
-        #Get the unqiue categories from the lists of categories
-        summed_account._sort_dates()
-        summed_account._f_expenses=summed_account._expenses.copy()
-        return summed_account
+        expense_data=self._expenses+other._expenses
+        return AccountData(expense_data=expense_data)
 
     def __truediv__(self, divisor):
-        quotient = AccountData()
         #Needs to deep copy, otherwise the elements in the list are the same id.
-        quotient._expenses=copy.deepcopy(self._expenses)
-        amount_col = quotient.columns["amount"]
-        for i in range(len(quotient._expenses)):
-            quotient._expenses[i][amount_col]=quotient._expenses[i][amount_col]/divisor
-        quotient._f_expenses=quotient._expenses.copy()
-        return quotient
+        expense_data=copy.deepcopy(self._expenses)
+        amount_col = self.columns["amount"]
+        for i in range(len(expense_data)):
+            expense_data[i][amount_col]=expense_data[i][amount_col]/divisor
+        return AccountData(expense_data=expense_data)
 
 
 if __name__ == "__main__":
