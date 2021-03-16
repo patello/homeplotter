@@ -19,13 +19,13 @@ class Categorizer():
     def match(self,reciever):
         if self._mode=="categorize":
             for category in self._rec_cat:
-                reg_exp = "(?i)\\b("+"|".join(self._rec_cat[category])+")"
+                reg_exp = "(?i)\\b("+"|".join(self._rec_cat[category])+")\\b"
                 if not re.search(reg_exp,reciever) is None:
                     return category
         elif self._mode=="tag":
             matches = []
             for tag in self._rec_cat:
-                reg_exp = "(?i)\\b("+"|".join(self._rec_cat[tag])+")"
+                reg_exp = "(?i)\\b("+"|".join(self._rec_cat[tag])+")\\b"
                 if not re.search(reg_exp,reciever) is None:
                     matches.append(tag)
             return matches
