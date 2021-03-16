@@ -113,7 +113,10 @@ class AccountData():
         ts = TimeSeries(self.get_data(category))
         ts.accumulate(1,unit)
         expenses = [data[1] for data in ts.data]
-        return sum(expenses)/len(expenses)
+        if len(expenses)>0:
+            return sum(expenses)/len(expenses)
+        else:
+            return 0
 
     def get_categories(self):
         categories = []
