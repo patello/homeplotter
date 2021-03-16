@@ -119,6 +119,23 @@ def test_get_average__empty():
     acc_data = AccountData(data_path1,cat_path)
     acc_data.filter_data("category","==","Non-existing")
     assert(acc_data.get_average("Day")==0)
+
+def test_get_average__filtered():
+    acc_data = AccountData(data_path1,cat_path)
+    #If we filter by something by other than data, we should still accumulate to the full extent of the data
+    acc_data.filter_data("category","==","cat2")
+    assert(acc_data.get_average("Week")==sum(acc_data.get_column("amount"))/3)
+    #If filter by date, accumulate should only be within the filtered dates
+    acc_data.reset_filter()
+    acc_data.filter_data("date",">",datetime.date(2020,12,13))
+    acc_data.filter_data("date","<=",datetime.date(2020,12,20))
+    assert(acc_data.get_average("Week")==(1000+100-25000)/1)
+    #The filter function should detect if the date filter is greater than the data and it should affect the average
+    acc_data.reset_filter()
+    acc_data.filter_data("date",">=",datetime.date(2020,12,7))
+    acc_data.filter_data("date","<",datetime.date(2020,12,23))
+    assert(acc_data.get_average("Week")==(1000+100-25000)/1)
+
 def test_get_categories():
     acc_data = AccountData(data_path1,cat_path)
     assert(sorted(acc_data.get_categories())==["Uncategorized","cat1","cat2","cat3"])

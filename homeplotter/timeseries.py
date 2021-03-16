@@ -2,9 +2,13 @@ import datetime
 import calendar
 
 class TimeSeries():
-    def __init__(self, data):
+    def __init__(self, data, daterange=None):
         #Only keep date and amount, even if more info is passed
         self.data=list(map(lambda x: [x[0],x[1]], data))
+        if daterange is not None:
+            #If daterange is set, append the start and end dates
+            self.data.append([daterange[0],0])
+            self.data.append([daterange[1],0])
         self.data=sorted(self.data, key = lambda x: x[0])
         self._sum_dates()
         self._add_missing_dates()

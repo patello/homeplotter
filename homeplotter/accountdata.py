@@ -18,14 +18,17 @@ def process_amount(amount_string):
 
 class AccountData():
     def __init__(self, account_file=None, cat_file=None, tag_file = None, expense_data = None, **kwds):
+        self.columns = {"date":0,"amount":1,"category":2,"text":3,"tags":4}
+        self.column_types = {0:datetime.date,1:float,2:str,3:str,4:list}
+        self._daterange = []
+        self._f_daterange = []
+        
         if expense_data is None:
             self._expenses = []
         else:
             self._expenses = expense_data
 
-        self.columns = {"date":0,"amount":1,"category":2,"text":3,"tags":4}
-        self.column_types = {0:datetime.date,1:float,2:str,3:str,4:list}
-        
+
         if cat_file is not None:
             categorizer = Categorizer(cat_file)
 
@@ -43,6 +46,8 @@ class AccountData():
                     self._expenses.append([process_date(row[0]),process_amount(row[1]),category,row[5],tags])
         
         self._sort_dates()
+        #After sorting, we can get the first and last date
+        self._daterange=[self._expenses[0][0],self._expenses[-1][0]]
         self.reset_filter()
 
     def get_data(self,category=None):
@@ -100,20 +105,29 @@ class AccountData():
             filter_fun = lambda data:data[col_i] <= value
         else:
             raise ValueError("Unsuported operator \"{operator}\". Only ==, >=, >, < and <= are supported.".format(operator=operator))
-
+        
+        if column == "date" and (operator == ">" or operator == ">=" or operator == "=="):
+            new_value = value if operator != ">" else value + datetime.timedelta(1)
+            if new_value > self._daterange[0]:
+                self._f_daterange[0] = new_value
+        if column == "date" and (operator == "<" or operator == "<=" or operator == "=="):
+            new_value = value if operator != "<" else value - datetime.timedelta(1)
+            if new_value < self._daterange[1]:
+                self._f_daterange[1] = new_value
         self._f_expenses=list(filter(filter_fun,self._f_expenses))
     
     def reset_filter(self):
         self._f_expenses = self._expenses.copy()
+        self._f_daterange = self._daterange.copy()
 
     def get_column(self, column, category=None):
         return [row[self.columns[column]] for row in self.get_data(category)]
 
     def get_timeseries(self,category=None):
-        return TimeSeries(self.get_data(category))
+        return TimeSeries(self.get_data(category),daterange=self._f_daterange)
     
     def get_average(self,unit,category=None):
-        ts = TimeSeries(self.get_data(category))
+        ts = self.get_timeseries(category)
         ts.accumulate(1,unit)
         expenses = [data[1] for data in ts.data]
         if len(expenses)>0:
