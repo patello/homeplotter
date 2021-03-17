@@ -12,6 +12,9 @@ def process_date(date_string):
 def process_amount(amount_string):
     #Replace the decimal comma with a dot
     processed_string = amount_string.replace(",",".")
+    #Remove "kr" and " " if there are any, as in the case with ICA csv
+    processed_string = processed_string.replace(" ","")
+    processed_string = processed_string.replace("kr","")
     #Turn the string into a number and define expenses as positive
     amount = -float(processed_string)
     return amount        
@@ -36,14 +39,23 @@ class AccountData():
             tagger = Categorizer(tag_file,mode="tag")
             
         if account_file is not None:    
-            with open(account_file, newline='') as csvfile:
+            #Encoding is a bit weird, but got /ufeff otherwise https://stackoverflow.com/questions/53187097/how-to-read-file-in-python-withou-ufef
+            with open(account_file, newline='',encoding='utf-8-sig') as csvfile:
                 accountreader = csv.reader(csvfile, delimiter=';')
                 #Skip the header line by first calling next
-                next(accountreader,None)
+                header_row = next(accountreader)
+                #Maybe clean this up and not have multiple try except
+                try: 
+                    file_columns = {"date":header_row.index("Bokföringsdag"),"amount":header_row.index("Belopp"),"text":header_row.index("Rubrik")}
+                except ValueError:
+                    try:
+                        file_columns = {"date":header_row.index("Datum"),"amount":header_row.index("Belopp"),"text":header_row.index("Text")}
+                    except ValueError:
+                        raise ValueError("Unsupported csv file structure.")
                 for row in accountreader:
-                    category=categorizer.match(row[5]) if 'categorizer' in locals() else "Uncategorized"
-                    tags=tagger.match(row[5]) if 'tagger' in locals() else []
-                    self._expenses.append([process_date(row[0]),process_amount(row[1]),row[5],category,tags])
+                    category=categorizer.match(row[file_columns["text"]]) if 'categorizer' in locals() else "Uncategorized"
+                    tags=tagger.match(row[file_columns["text"]]) if 'tagger' in locals() else []
+                    self._expenses.append([process_date(row[file_columns["date"]]),process_amount(row[file_columns["amount"]]),row[file_columns["text"]],category,tags])
         
         self._sort_dates()
         #After sorting, we can get the first and last date
