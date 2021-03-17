@@ -18,7 +18,7 @@ def process_amount(amount_string):
 
 class AccountData():
     def __init__(self, account_file=None, cat_file=None, tag_file = None, expense_data = None, **kwds):
-        self.columns = {"date":0,"amount":1,"category":2,"text":3,"tags":4}
+        self.columns = {"date":0,"amount":1,"text":2,"category":3,"tags":4}
         self.column_types = {0:datetime.date,1:float,2:str,3:str,4:list}
         self._daterange = []
         self._f_daterange = []
@@ -43,7 +43,7 @@ class AccountData():
                 for row in accountreader:
                     category=categorizer.match(row[5]) if 'categorizer' in locals() else "Uncategorized"
                     tags=tagger.match(row[5]) if 'tagger' in locals() else []
-                    self._expenses.append([process_date(row[0]),process_amount(row[1]),category,row[5],tags])
+                    self._expenses.append([process_date(row[0]),process_amount(row[1]),row[5],category,tags])
         
         self._sort_dates()
         #After sorting, we can get the first and last date
@@ -52,7 +52,7 @@ class AccountData():
 
     def get_data(self,category=None):
         if category is not None:
-            return list(filter(lambda x : x[2]==category,self._f_expenses))
+            return list(filter(lambda x : x[3]==category,self._f_expenses))
         else:
             return list(self._f_expenses)
 
@@ -138,8 +138,8 @@ class AccountData():
     def get_categories(self):
         categories = []
         for data in self._f_expenses:
-            if data[2] not in categories:
-                categories.append(data[2])
+            if data[3] not in categories:
+                categories.append(data[3])
         return categories
 
     def get_tags(self):

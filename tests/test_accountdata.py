@@ -26,7 +26,7 @@ def test_get_data__category_is_correct():
     acc_data1 = AccountData(data_path1,cat_path)
     #When asking for data from a category, all categories should be correct
     for data in acc_data1.get_data("cat3"):
-        assert(data[2]=="cat3")
+        assert(data[3]=="cat3")
 
 def test_get_data__is_sorted():
     #Everything should sorted ascending by the first column (date) after initialization
