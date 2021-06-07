@@ -9,5 +9,5 @@ Datum;Text;Typ;Budgetgrupp;Belopp;Saldo
 2021-01-01;Lorem Ipsum;Övrigt;Övrigt;-100 kr;999,99
 2020-12-30;Swish betalning a2;Övrigt;Övrigt;-200 kr;999,99
 2020-12-30;Betalning BG XXX-XXXX C2;Övrigt;Övrigt;-200 kr;999,99
-2020-12-28;E1;;Övrigt;1 000 kr;999,99
+2020-12-28;C*E1;;Övrigt;1 000 kr;999,99
 2020-12-10;A4;;Övrigt;1 000 kr;999,99

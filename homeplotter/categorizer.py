@@ -17,8 +17,11 @@ class Categorizer():
                 self._rec_cat["Uncategorized"] = [""]
         
     def match(self,reciever):
-        #Remove astrixes from reciever text since it they mess up matching and show up in random places
-        r_text = reciever.replace("*","")
+        #Remove common astrixes from reciever text since it they mess up matching and show up in random places
+        r_text = reciever
+        r_text = r_text.replace("K*","")
+        r_text = r_text.replace("C*","")
+        r_text = r_text.replace("*","")
         if self._mode=="categorize":
             for category in self._rec_cat:
                 reg_exp = "(?i)\\b("+"|".join(self._rec_cat[category])+")\\b"
