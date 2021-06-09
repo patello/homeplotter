@@ -15,6 +15,24 @@ class Categorizer():
             self._rec_cat = collections.OrderedDict(data)
             if self._mode=="categorize":
                 self._rec_cat["Uncategorized"] = [""]
+            if self._mode=="tag":
+                def tag_unnesting(tag_list):
+                    unnested_list = []
+                    unnested_dict = {}
+                    for tag in tag_list:
+                        if tag=="":
+                            unnested_list+=tag_list[tag] 
+                        elif type(tag_list[tag]) is list:
+                            unnested_list+=tag_list[tag]
+                            unnested_dict.update({tag:tag_list[tag]})
+                        elif type(tag_list[tag]) is dict:
+                            ret_list, ret_dicts = tag_unnesting(tag_list[tag])
+                            unnested_list+=ret_list
+                            unnested_dict.update(ret_dicts)
+                            unnested_dict.update({tag:ret_list})
+                    return((unnested_list,unnested_dict))
+
+                (_,self._rec_cat)=tag_unnesting(self._rec_cat)
         
     def match(self,reciever):
         #Remove common astrixes from reciever text since it they mess up matching and show up in random places
