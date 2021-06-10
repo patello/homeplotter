@@ -38,7 +38,22 @@ class Categorizer():
                             unnested_dict.update({tag:ret_list})
                     #Return a flat list that contains all sub elements, as well as all sub dicts flattened.
                     return((unnested_list,unnested_dict))
-
+                def levels_unnesting(tag_list,level):
+                    levels = {level:[]}
+                    for tag in tag_list:
+                        #Ignore tags with empty strings, they act as if parent was a list
+                        if tag != "":
+                            levels[level].append(tag)
+                            if type(tag_list[tag]) is dict:
+                                ret_levels = levels_unnesting(tag_list[tag],level+1)
+                                for ret_level in ret_levels:
+                                    if ret_level in levels:
+                                        levels[ret_level]+=ret_levels[ret_level]
+                                    else:
+                                        levels[ret_level]=ret_levels[ret_level]
+                    return levels
+                #Tag levels need to be extracted from _rec_cat before tag_unnesting as it flattens the levels
+                self._tag_levels=levels_unnesting(self._rec_cat,0)
                 (_,self._rec_cat)=tag_unnesting(self._rec_cat)
         
     def match(self,reciever):
@@ -65,6 +80,12 @@ class Categorizer():
 
     def categories(self):
         return dict.keys(self._rec_cat)
+    
+    def get_levels(self):
+        if self._mode=="tag":
+            return self._tag_levels
+        else:
+            raise(NotImplemented)
 
 if __name__=="__main__":
     categorizer = Categorizer("/root/projects/homeplotter/example_data/categories.json")

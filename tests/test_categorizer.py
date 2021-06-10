@@ -29,5 +29,12 @@ def test_match_tag_nested():
     assert(tagger.match("C3")==["tagABC"])
     assert(tagger.match("E2")==["tag2"])
 
+def test_tag_levels():
+    tagger = Categorizer(tag_nested_path,mode="tag")
+    assert(list(tagger.get_levels().keys())==[0,1,2])
+    assert(tagger.get_levels()[0]==["tagABC","tag2"])
+    assert(tagger.get_levels()[1]==["A","B"])
+    assert(tagger.get_levels()[2]==["B1","B23"])
+
 if __name__=="__main__":
     test_match_category()
