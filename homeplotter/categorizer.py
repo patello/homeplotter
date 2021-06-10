@@ -17,19 +17,26 @@ class Categorizer():
                 self._rec_cat["Uncategorized"] = [""]
             if self._mode=="tag":
                 def tag_unnesting(tag_list):
+                    #Unnesting works by iterating over all sub tags and flattening out all elements.
+                    #Tags also return a dict so that sub tags can be broken out on level 0
                     unnested_list = []
                     unnested_dict = {}
                     for tag in tag_list:
+                        #If tag is an empty string treat it as if the parent was a list (i.e, don't break anything)
                         if tag=="":
                             unnested_list+=tag_list[tag] 
+                        #If the tag is a list, add it to the parents list (via unnested_list) and break ut the tag on it's own
                         elif type(tag_list[tag]) is list:
                             unnested_list+=tag_list[tag]
                             unnested_dict.update({tag:tag_list[tag]})
+                        #If the tag is a dict, recursively call tag_unnesteing which will return a flat list of all the sub elements, and all the broken out dicts
                         elif type(tag_list[tag]) is dict:
                             ret_list, ret_dicts = tag_unnesting(tag_list[tag])
                             unnested_list+=ret_list
                             unnested_dict.update(ret_dicts)
+                            #Also add this tag to the dict
                             unnested_dict.update({tag:ret_list})
+                    #Return a flat list that contains all sub elements, as well as all sub dicts flattened.
                     return((unnested_list,unnested_dict))
 
                 (_,self._rec_cat)=tag_unnesting(self._rec_cat)
