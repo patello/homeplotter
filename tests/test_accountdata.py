@@ -6,6 +6,7 @@ from homeplotter.accountdata import AccountData
 resource_path = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', 'example_data'))
 cat_path = os.path.join(resource_path,"categories.json")
 tag_path = os.path.join(resource_path,"tags.json")
+tag_nested_path = os.path.join(resource_path,"tags_nested.json")
 data_path1 = os.path.join(resource_path,"data1.csv")
 data_path2 = os.path.join(resource_path,"data2.csv")
 
@@ -143,6 +144,13 @@ def test_get_categories():
 def test_get_tags():
     acc_data = AccountData(data_path1,tag_file=tag_path)
     assert(sorted(acc_data.get_tags())==["tag1","tag2","tag3","överföring"])
+
+def test_get_tags_level():
+    acc_data = AccountData(data_path1,tag_file=tag_nested_path)
+    assert(acc_data.get_tags("==",0) == ["tag2","tagABC"])
+    assert(acc_data.get_tags(">=",1) == ["B23","B","A","B1"])
+    #Since there are only 2 levels, getting all levels that are less than 3 should give back all tags
+    assert(acc_data.get_tags("<",3) == acc_data.get_tags())
 
 if __name__=="__main__":
     test_init()

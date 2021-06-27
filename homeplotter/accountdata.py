@@ -3,6 +3,8 @@ import re
 import datetime
 import copy
 
+from functools import reduce
+
 from homeplotter.categorizer import Categorizer
 from homeplotter.timeseries import TimeSeries
 
@@ -33,10 +35,10 @@ class AccountData():
 
 
         if cat_file is not None:
-            categorizer = Categorizer(cat_file)
+            self.categorizer = Categorizer(cat_file)
 
         if tag_file is not None:
-            tagger = Categorizer(tag_file,mode="tag")
+            self.tagger = Categorizer(tag_file,mode="tag")
             
         if account_file is not None:    
             #Encoding is a bit weird, but got /ufeff otherwise https://stackoverflow.com/questions/53187097/how-to-read-file-in-python-withou-ufef
@@ -53,8 +55,8 @@ class AccountData():
                     except ValueError:
                         raise ValueError("Unsupported csv file structure.")
                 for row in accountreader:
-                    category=categorizer.match(row[file_columns["text"]]) if 'categorizer' in locals() else "Uncategorized"
-                    tags=tagger.match(row[file_columns["text"]]) if 'tagger' in locals() else []
+                    category=self.categorizer.match(row[file_columns["text"]]) if hasattr(self,"categorizer") else "Uncategorized"
+                    tags=self.tagger.match(row[file_columns["text"]]) if hasattr(self,"tagger") else []
                     self._expenses.append([process_date(row[file_columns["date"]]),process_amount(row[file_columns["amount"]]),row[file_columns["text"]],category,tags])
         
         self._sort_dates()
@@ -154,11 +156,38 @@ class AccountData():
                 categories.append(data[3])
         return categories
 
-    def get_tags(self):
+    def get_tags(self,operator=">=",level=0):
         tags = []
+        if operator == ">=" and level == 0:
+            #If default, no need to check the level
+            level_test_fun = lambda tag:True
+        elif type(level) != int or level < 0:
+            raise ValueError("Unsuported level specification \"{level}\". Only ints  >= 0 are supported.".format(level=level))
+        elif operator in [">=",">","==","<","<="]:
+            #Get the largest key (level) to be used for operator >= and >
+            max_level = max(self.tagger.get_levels().keys())
+            if operator == ">=":
+                it_range = (level,max_level+1)
+            elif operator == ">":
+                it_range = (level+1,max_level+1)
+            elif operator == "==":
+                it_range = (level,level+1)
+            elif operator == "<":
+                it_range = (0,level)
+            elif operator == "<=":
+                it_range = (0,level+1)
+            tag_list = []
+            tag_levels = self.tagger.get_levels()
+            for it_level in range(*it_range):
+                tag_list += tag_levels[it_level]
+            #Defines a lambda function that will be used when iterating over tags, needs to be part of the tags of a certain level
+            level_test_fun = lambda tag: tag in tag_list
+        else:
+            raise ValueError("Unsuported operator \"{operator}\". Only ==, >=, >, < and <= are supported.".format(operator=operator))
+
         for data in self._f_expenses:
             for tag in data[4]:
-                if tag not in tags:
+                if tag not in tags and level_test_fun(tag):
                     tags.append(tag)
         return tags
 
