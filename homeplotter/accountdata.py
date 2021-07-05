@@ -149,6 +149,10 @@ class AccountData():
         else:
             return 0
 
+    def get_total(self):
+        expenses = [data[1] for data in self._f_expenses]
+        return sum(expenses)
+
     def get_categories(self):
         categories = []
         for data in self._f_expenses:
@@ -198,7 +202,13 @@ class AccountData():
 
     def __add__(self, other):
         expense_data=self._expenses+other._expenses
-        return AccountData(expense_data=expense_data)
+        new_account = AccountData(expense_data=expense_data)
+        #Tagger needs to be added to the new account data object so that we can get levels from it later
+        if hasattr(self,"tagger"):
+            new_account.tagger = self.tagger
+        if hasattr(self,"categorizer"):
+            new_account.categorizer = self.categorizer
+        return new_account
 
     def __truediv__(self, divisor):
         #Needs to deep copy, otherwise the elements in the list are the same id.
@@ -206,7 +216,12 @@ class AccountData():
         amount_col = self.columns["amount"]
         for i in range(len(expense_data)):
             expense_data[i][amount_col]=expense_data[i][amount_col]/divisor
-        return AccountData(expense_data=expense_data)
+        new_account = AccountData(expense_data=expense_data)
+        if hasattr(self,"tagger"):
+            new_account.tagger = self.tagger
+        if hasattr(self,"categorizer"):
+            new_account.categorizer = self.categorizer
+        return new_account
 
 
 if __name__ == "__main__":

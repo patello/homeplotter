@@ -137,6 +137,14 @@ def test_get_average__filtered():
     acc_data.filter_data("date","<",datetime.date(2020,12,23))
     assert(acc_data.get_average("Week")==(1000+100-25000)/1)
 
+def test_get_total():
+    acc_data = AccountData(data_path1,cat_path)
+    assert(acc_data.get_total()==-44559.5)
+    acc_data.filter_data("category","==","cat2")
+    assert(acc_data.get_total()==1840)
+    acc_data.filter_data("date",">",datetime.date(2020,12,25))
+    assert(acc_data.get_total()==300)
+
 def test_get_categories():
     acc_data = AccountData(data_path1,cat_path)
     assert(sorted(acc_data.get_categories())==["Uncategorized","cat1","cat2","cat3"])
