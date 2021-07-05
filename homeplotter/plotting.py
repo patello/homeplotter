@@ -5,30 +5,23 @@ import math
 
 from homeplotter.accountdata import AccountData 
 
-cat_file="./data/personal_categories.json"
 tag_file="./data/personal_tags.json"
-account_data1 = AccountData("./data/konto_gemensamt.csv",cat_file,tag_file)
-account_data2 = AccountData("./data/konto_personligt.csv",cat_file,tag_file)
-account_data3 = AccountData("./data/konto_ica.csv",cat_file,tag_file)
-summed_account = account_data1/2 + account_data2 + account_data3 / 3
+account_data1 = AccountData("./data/konto_gemensamt.csv",tag_file=tag_file)
+account_data2 = AccountData("./data/konto_personligt.csv",tag_file=tag_file)
+account_data3 = AccountData("./data/konto_ica.csv",tag_file=tag_file)
+summed_account = (account_data1/2) + account_data2 + (account_data3/2)
 
-categories = summed_account.get_categories()
-categories.remove("Uncategorized")
-categories.remove("Transfer")
-categories.append("All")
+start_date = datetime.date(2021,2,1)
 
-tags = summed_account.get_tags()
-tags.remove("Reservation")
-
-summary_texts = []
-summary_texts.append("------Tag Summary (Month)------")
-tag_average = []
-for tag in tags:
+def create_plot(tag,output_path,acc_delta="Month"):
     summed_account.reset_filter()
-    summed_account.filter_data("tags","==",tag)
-    summed_account.filter_data("date",">=",datetime.date(2021,2,1))
-    tag_average.append([tag,math.ceil(summed_account.get_average("Month"))])
-    acc_delta = "Month"
+    if tag != "All":
+        summed_account.filter_data("tags","==",tag)
+    else:
+        summed_account.filter_data("tags","!=","Reservation")
+        summed_account.filter_data("tags","!=","Överföring")
+        summed_account.filter_data("tags","!=","Lön")
+    summed_account.filter_data("date",">=",start_date)
     plt.cla()
     tsdata = summed_account.get_timeseries()
     tsdata.accumulate(1,acc_delta)
@@ -39,45 +32,58 @@ for tag in tags:
         plt.gca().xaxis.set_major_locator(mdates.MonthLocator())
     plt.plot(tsdata.get_x(),tsdata.get_y())
     plt.gcf().autofmt_xdate()
-    plt.savefig('./output/tags/{tag}.png'.format(tag=tag,acc_delta=acc_delta.lower()))
-for tag in sorted(tag_average,key=lambda tag:-tag[1]):
-    summary_texts.append("{tag}: {amount}".format(tag=tag[0],amount=tag[1]))
-
-cat_average = []
-summary_texts.append("\n------Category Summary (Month)------")
-for category in categories:
+    plt.grid(axis="y")
+    plt.savefig(output_path)
     summed_account.reset_filter()
 
-    summed_account.filter_data("date",">=",datetime.date(2020,12,1))
-    if category != "All":
-        summed_account.filter_data("category","==",category)
-    else:
-        #Remove transfers from all to get a bit more consistency
-        summed_account.filter_data("category","!=","Transfer")
-    cat_average.append([category,math.ceil(summed_account.get_average("Month"))])
-    summed_account.filter_data("tags","!=","Reservation")
-    acc_delta = "Month"
-    plt.cla()
-    tsdata = summed_account.get_timeseries()
-    tsdata.accumulate(1,acc_delta)
-    plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%m/%d/%Y'))
-    if acc_delta == "Week":
-        plt.gca().xaxis.set_major_locator(mdates.WeekdayLocator())
-    else:
-        plt.gca().xaxis.set_major_locator(mdates.MonthLocator())
-    plt.plot(tsdata.get_x(),tsdata.get_y())
-    plt.gcf().autofmt_xdate()
-    plt.savefig('./output/{category}.png'.format(category=category,acc_delta=acc_delta.lower()))
-for cat in sorted(cat_average,key=lambda cat:-cat[1]):
-    summary_texts.append("{cat}: {amount}".format(cat=cat[0],amount=cat[1]))
+def create_average(tags,output_path,acc_delta="Month"):
+    tag_averages = []
+    for tag in tags:
+        summed_account.reset_filter()
+        summed_account.filter_data("tags","==",tag)
+        summed_account.filter_data("date",">=",start_date)
+        tag_averages.append([tag,math.ceil(summed_account.get_average(acc_delta))])
+    with open(output_path, "w") as f:
+        for (tag,average) in sorted(tag_averages, key=lambda x: -x[1]):
+            f.write("{tag}: {average}\n".format(tag=tag,average=average))
 
-with open("./output/categories.csv", "w") as f:
+def create_month_totals(tags,output_path,month,year):
+    tag_totals = []
+    for tag in tags:
+        summed_account.reset_filter()
+        summed_account.filter_data("tags","==",tag)
+        summed_account.filter_data("date",">=",datetime.date(year,month,1))
+        summed_account.filter_data("date","<",datetime.date(year if month != 12 else year +1,month + 1 if month != 12 else 1,1))
+        tag_totals.append([tag,math.ceil(summed_account.get_total())])
+    with open(output_path, "w") as f:
+        for (tag,total) in sorted(tag_totals, key=lambda x: -x[1]):
+            f.write("{tag}: {total}\n".format(tag=tag,total=total))
+
+def create_unsorted(output_path):
     summed_account.reset_filter()
-    for data in reversed(summed_account.get_data()):
-        f.write(", ".join([data[3],data[2],str(data[4])]))
-        f.write("\n")
+    summed_account.filter_data("tags","==",[])
+    summed_account.filter_data("date",">=",start_date)
+    with open(output_path, "w") as f:
+        for (date,amount,text,category,tags) in summed_account.get_data():
+            f.write("{date}, {amount}, {text}\n".format(date=date.strftime("%d/%m"),amount=amount,text=text))
 
-with open("./output/summary.txt", "w") as f:
-    for row in summary_texts:
-        f.write(row)
-        f.write("\n")
+top_tags = summed_account.get_tags("==",0)
+top_tags.remove("Reservation")
+top_tags.remove("Överföring")
+create_average(top_tags,"./output/summaries/average_top_tags.txt")
+top_tags.append("All")
+for tag in top_tags:
+    create_plot(tag,'./output/{tag}.png'.format(tag=tag))
+
+other_tags = summed_account.get_tags(">=",1)
+for tag in other_tags:
+    create_plot(tag,'./output/other/{tag}.png'.format(tag=tag))
+
+all_tags = summed_account.get_tags()
+create_average(all_tags,"./output/summaries/averages_all_tags.txt")
+month=datetime.date.today().month
+year=datetime.date.today().year
+create_month_totals(all_tags,"./output/summaries/current_month_total.txt",month,year)
+create_month_totals(all_tags,"./output/summaries/last_month_total.txt",month-1 if month != 1 else 12,year if month != 1 else year-1)
+
+create_unsorted("./output/summaries/untagged.txt")

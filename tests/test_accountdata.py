@@ -162,7 +162,6 @@ def test_get_tags_level():
 
 if __name__=="__main__":
     test_init()
-    test_categories()
     test_get_data()
     test_get_data__is_sorted()
     test_add()
