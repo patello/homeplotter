@@ -10,10 +10,10 @@ class Categorizer():
         else:
             raise ValueError("Unknown mode: {mode}".format(mode=mode))
         with open(cfile) as json_file:
-            data = json.load(json_file)
+            self._data = json.load(json_file)
             #Using ordered dict since I need to makes sure it's the last key that matches everything.
             #Seems like we can use an ordinary dict from python 3.7 and on. 
-            self._rec_cat = collections.OrderedDict(data)
+            self._rec_cat = collections.OrderedDict(self._data)
             self._tag_parents = {}
             if self._mode=="categorize":
                 self._rec_cat["Uncategorized"] = [""]
