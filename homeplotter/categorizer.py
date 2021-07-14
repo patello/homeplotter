@@ -138,6 +138,12 @@ class Categorizer():
                 #If mode is categorize, the "Uncategorized function need to be moved to the end of the dict
                 self._rec_cat.move_to_end("Uncategorized")
 
+    def save(self, cfile):
+        data = json.dumps(self._data)
+        catFile = open(cfile,"w")
+        catFile.write(data)
+        catFile.close()
+
 if __name__=="__main__":
     categorizer = Categorizer("/root/projects/homeplotter/example_data/categories.json")
     print(categorizer.match("Kortköp 201227 A*2"))

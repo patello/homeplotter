@@ -73,5 +73,20 @@ def test_tag_append_nested_levels():
     tagger.append("new top tag","sed")
     assert(tagger.get_levels()[0]==["tagABC","tag2","new top tag"])
 
+def test_save(tmp_path):
+    org_categorizer = Categorizer(cat_path)
+    new_file = tmp_path/"test_cat.json"
+    org_categorizer.save(new_file)
+    new_categorizer = Categorizer(new_file)
+    assert(new_categorizer.match("Kortköp 20210101 A2") == org_categorizer.match("Kortköp 20210101 A2"))
+
+def test_save_changed(tmp_path):
+    org_tagger = Categorizer(tag_nested_path,mode="tag")
+    org_tagger.append("new tag","elit","B23")
+    new_file = tmp_path/"test_tag_changed.json"
+    org_tagger.save(new_file)
+    new_tagger = Categorizer(new_file,mode="tag")
+    assert(new_tagger.match("consectetur adipiscing elit") == org_tagger.match("consectetur adipiscing elit"))
+
 if __name__=="__main__":
     test_match_category()
