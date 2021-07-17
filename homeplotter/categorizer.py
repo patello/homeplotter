@@ -10,65 +10,44 @@ class Categorizer():
         else:
             raise ValueError("Unknown mode: {mode}".format(mode=mode))
         with open(cfile) as json_file:
-            self._data = json.load(json_file)
+            data = json.load(json_file)
             #Using ordered dict since I need to makes sure it's the last key that matches everything.
             #Seems like we can use an ordinary dict from python 3.7 and on. 
-            self._rec_cat = collections.OrderedDict(self._data)
+            self._rec_cat = collections.OrderedDict(data)
             self._tag_parents = {}
             if self._mode=="categorize":
                 self._rec_cat["Uncategorized"] = [""]
-            if self._mode=="tag":
-                def tag_unnesting(tag_list):
-                    #Unnesting works by iterating over all sub tags and flattening out all elements.
-                    #Tags also return a dict so that sub tags can be broken out on level 0
-                    unnested_list = []
-                    unnested_dict = {}
-                    for tag in tag_list:
-                        #If tag is an empty string treat it as if the parent was a list (i.e, don't break anything)
-                        if tag=="":
-                            unnested_list+=tag_list[tag] 
-                        #If the tag is a list, add it to the parents list (via unnested_list) and break ut the tag on it's own
-                        elif type(tag_list[tag]) is list:
-                            unnested_list+=tag_list[tag]
-                            unnested_dict.update({tag:tag_list[tag]})
-                        #If the tag is a dict, recursively call tag_unnesteing which will return a flat list of all the sub elements, and all the broken out dicts
-                        elif type(tag_list[tag]) is dict:
-                            ret_list, ret_dicts = tag_unnesting(tag_list[tag])
-                            unnested_list+=ret_list
-                            unnested_dict.update(ret_dicts)
-                            #Also add this tag to the dict
-                            unnested_dict.update({tag:ret_list})
-                    #Return a flat list that contains all sub elements, as well as all sub dicts flattened.
-                    return((unnested_list,unnested_dict))
-                def levels_unnesting(tag_list,level):
-                    levels = {level:[]}
-                    for tag in tag_list:
-                        #Ignore tags with empty strings, they act as if parent was a list
-                        if tag != "":
-                            levels[level].append(tag)
-                            if type(tag_list[tag]) is dict:
-                                ret_levels = levels_unnesting(tag_list[tag],level+1)
-                                for ret_level in ret_levels:
-                                    if ret_level in levels:
-                                        levels[ret_level]+=ret_levels[ret_level]
-                                    else:
-                                        levels[ret_level]=ret_levels[ret_level]
-                    return levels
-                def parent_unnesting(tag_list,parent=None):
-                    parents = {}
-                    for tag in tag_list:
-                        if tag != "":
-                            if parent is not None:
-                                parents[tag]=parent
-                            if type(tag_list[tag]) is dict:
-                                ret_parents = parent_unnesting(tag_list[tag],tag)
-                                for ret_parent in ret_parents:
-                                    parents[ret_parent] = ret_parents[ret_parent]
-                    return parents
+            def tag_flattening(tag_list,tag=None):
+                if type(tag_list) is list:
+                    flattened_tags = {tag:tag_list}
+                else:
+                    flattened_tags = {}
+                    for sub_tag in tag_list:
+                        if sub_tag != "":
+                            flattened_tags.update(tag_flattening(tag_list[sub_tag],sub_tag))
+                        else:
+                            flattened_tags.update({tag:tag_list[sub_tag]})
+                #If the top tag doesn't have any matches of it's own, add an empty list s that we still keep track of it
+                if tag is not None and tag not in flattened_tags:
+                    flattened_tags[tag]=[]
+                return flattened_tags
+
+
+            def parent_unnesting(tag_list,parent=None):
+                parents = {}
+                for tag in tag_list:
+                    if tag != "":
+                        if parent is not None:
+                            parents[tag]=parent
+                        if type(tag_list[tag]) is dict:
+                            ret_parents = parent_unnesting(tag_list[tag],tag)
+                            for ret_parent in ret_parents:
+                                parents[ret_parent] = ret_parents[ret_parent]
+                return parents
 
                 #Tag parents need to be extracted from _rec_cat before tag_unnesting as it flattens the levels
-                self._tag_parents=parent_unnesting(self._rec_cat)
-                (_,self._rec_cat)=tag_unnesting(self._rec_cat)
+            self._tag_parents=parent_unnesting(self._rec_cat)
+            self._rec_cat = collections.OrderedDict(tag_flattening(self._rec_cat))
         
     def match(self,reciever):
         #Remove common astrixes from reciever text since it they mess up matching and show up in random places
@@ -85,8 +64,13 @@ class Categorizer():
             matches = []
             for tag in self._rec_cat:
                 reg_exp = "(?i)\\b("+"|".join(self._rec_cat[tag])+")\\b"
-                if not re.search(reg_exp,r_text) is None:
+                if self._rec_cat[tag] != [] and not re.search(reg_exp,r_text) is None:
                     matches.append(tag)
+                    #Check if it has a parent, and add those recursively as well.
+                    parent_tag = self._tag_parents.get(tag,None)
+                    while parent_tag is not None:
+                        matches.append(parent_tag)
+                        parent_tag = self._tag_parents.get(parent_tag,None)
             return matches
 
         #Throw exception?
@@ -124,22 +108,37 @@ class Categorizer():
                 #If it is a dictionary, it belongs to a tag that has children, but isn't part of the children.
                 #They are denoted with an empty string.
                 self._rec_cat[tag][""].append(text)
-            #If the tag has parents, it needs to be added recurively to them as well. 
-            if tag in self._tag_parents:
-                self.append(self._tag_parents[tag],text)
         else:
             #Else, create a new tag with the text.
             self._rec_cat[tag]=[text]
             if parent_tag is not None:
                 self._tag_parents[tag]=parent_tag
-                #Recursively add the tag to the parents as well
-                self.append(parent_tag,text)
             if self._mode=="categorize":
                 #If mode is categorize, the "Uncategorized function need to be moved to the end of the dict
                 self._rec_cat.move_to_end("Uncategorized")
 
     def save(self, cfile):
-        data = json.dumps(self._data)
+        def tag_nesting(tag):
+            #Find all child tags (keys to tag parents are children)
+            child_tags = []
+            for child_tag in self._tag_parents:
+                if self._tag_parents[child_tag] == tag:
+                    child_tags.append(child_tag)
+            if child_tags != []:
+                nested_tags = {}
+                #check if it has own tags, add them as the "''" key then
+                if self._rec_cat[tag] != []:
+                    nested_tags['']=self._rec_cat[tag]
+                for child_tag in child_tags:
+                    nested_tags.update(tag_nesting(child_tag))
+                return {tag:nested_tags}
+            else:
+                return {tag:self._rec_cat[tag]}
+
+        nested_tag = {}
+        for root_tag in self.get_levels()[0]:
+            nested_tag.update(tag_nesting(root_tag))
+        data = json.dumps(nested_tag)
         catFile = open(cfile,"w")
         catFile.write(data)
         catFile.close()

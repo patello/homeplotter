@@ -62,7 +62,7 @@ def test_tag_append_nested():
     tagger.append("A","sit")
     assert(tagger.match("dolor sit amet")==["A","tagABC"])
     tagger.append("new tag","elit","B23")
-    assert(tagger.match("consectetur adipiscing elit")==["B23","B","tagABC","new tag"])
+    assert(tagger.match("consectetur adipiscing elit")==["new tag","B23","B","tagABC"])
     tagger.append("new top tag","sed")
     assert(tagger.match("sed do")==["new top tag"])
 
