@@ -1,4 +1,5 @@
 import os
+import pytest
 
 from homeplotter.categorizer import Categorizer
 
@@ -66,12 +67,40 @@ def test_tag_append_nested():
     tagger.append("new top tag","sed")
     assert(tagger.match("sed do")==["new top tag"])
 
-def test_tag_append_nested_levels():
+def test_category_remove():
+    categorizer = Categorizer(cat_path)
+    assert(categorizer.match("A1")=="cat1")
+    categorizer.remove("cat1")
+    assert(categorizer.match("A1")=="Uncategorized")
+
+def test_tag_remove_flat():
+    tagger = Categorizer(tag_path,mode="tag")
+    assert(tagger.match("överföring A1")==["tag1","överföring"])
+    tagger.remove("tag1")
+    assert(tagger.match("överföring A1")==["överföring"])
+    tagger.remove("överföring")
+    assert(tagger.match("överföring A1")==[])
+
+def test_tag_remove_nested():
     tagger = Categorizer(tag_nested_path,mode="tag")
-    tagger.append("new tag","elit","B23")
-    assert(tagger.get_levels()[3]==["new tag"])
-    tagger.append("new top tag","sed")
-    assert(tagger.get_levels()[0]==["tagABC","tag2","new top tag"])
+    assert(tagger.match("A2")==["A","tagABC","tag2"])
+    tagger.remove("A")
+    assert(tagger.match("A2")==["tag2"])
+    tagger.remove("B1")
+    assert(tagger.match("B1")==[])
+    assert(tagger.match("B2")==["B23","B","tagABC","tag2"])
+
+def test_tag_remove_nested_parent():
+    tagger = Categorizer(tag_nested_path,mode="tag")
+    tagger.remove("tagABC")
+    assert(tagger.match("A2")==["tag2"])
+
+def test_tag_remove_nested_levels():
+    tagger = Categorizer(tag_nested_path,mode="tag")
+    tagger.remove("B")
+    with pytest.raises(Exception) as KeyError:
+        tagger.get_levels()[2]
+    assert(tagger.get_levels()[1]==["A"])
 
 def test_save(tmp_path):
     org_categorizer = Categorizer(cat_path)
@@ -86,6 +115,10 @@ def test_save_changed(tmp_path):
     new_file = tmp_path/"test_tag_changed.json"
     org_tagger.save(new_file)
     new_tagger = Categorizer(new_file,mode="tag")
+    assert(new_tagger.match("consectetur adipiscing elit") == org_tagger.match("consectetur adipiscing elit"))
+    new_tagger.remove("new tag")
+    new_tagger.save(new_file)
+    org_tagger = Categorizer(new_file,mode="tag")
     assert(new_tagger.match("consectetur adipiscing elit") == org_tagger.match("consectetur adipiscing elit"))
 
 if __name__=="__main__":
