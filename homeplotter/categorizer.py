@@ -117,23 +117,28 @@ class Categorizer():
                 #If mode is categorize, the "Uncategorized function need to be moved to the end of the dict
                 self._rec_cat.move_to_end("Uncategorized")
 
-    def remove(self,tag):
-        #First, delete any eventual children
-        #Check if tag is a parent to one or more children
-        child_tags = []
-        for child_tag in self._tag_parents:
-            if self._tag_parents[child_tag] == tag:
-                #The loop need to be evaluated before removing the child tags
-                #Otherwise we'll get RuntimeError: dictionary changed size during iteration
-                #Since delete modifes the _tag_parents dict. So we keep track of them in a list instead.
-                child_tags.append(child_tag)
-        for child_tag in child_tags:
-            self.remove(child_tag)
-        #Delete the tag from the reciever categories
-        del self._rec_cat[tag]
-        #If the tag has a parent, delete it in the parents entry as well
-        if tag in self._tag_parents:
-            del self._tag_parents[tag]
+    def remove(self,tag,reciever=None):
+        if reciever is None:
+            #If reciever is None, delete the entire tag
+            #First, delete any eventual children
+            #Check if tag is a parent to one or more children
+            child_tags = []
+            for child_tag in self._tag_parents:
+                if self._tag_parents[child_tag] == tag:
+                    #The loop need to be evaluated before removing the child tags
+                    #Otherwise we'll get RuntimeError: dictionary changed size during iteration
+                    #Since delete modifes the _tag_parents dict. So we keep track of them in a list instead.
+                    child_tags.append(child_tag)
+            for child_tag in child_tags:
+                self.remove(child_tag)
+            #Delete the tag from the reciever categories
+            del self._rec_cat[tag]
+            #If the tag has a parent, delete it in the parents entry as well
+            if tag in self._tag_parents:
+                del self._tag_parents[tag]
+        else:
+            #Else, only delete the reciever from the particular tag
+            self._rec_cat[tag].remove(reciever)
 
     def save(self, cfile):
         def tag_nesting(tag):

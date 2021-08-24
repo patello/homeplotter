@@ -72,6 +72,11 @@ def test_category_remove():
     assert(categorizer.match("A1")=="cat1")
     categorizer.remove("cat1")
     assert(categorizer.match("A1")=="Uncategorized")
+    assert(categorizer.match("B1")=="cat2")
+    categorizer.remove("cat2","B2")
+    assert(categorizer.match("B1")=="cat2")
+    categorizer.remove("cat2","B1")
+    assert(categorizer.match("B1")=="Uncategorized")
 
 def test_tag_remove_flat():
     tagger = Categorizer(tag_path,mode="tag")
@@ -80,6 +85,10 @@ def test_tag_remove_flat():
     assert(tagger.match("överföring A1")==["överföring"])
     tagger.remove("överföring")
     assert(tagger.match("överföring A1")==[])
+    assert(tagger.match("A2")==["tag2"])
+    tagger.remove("tag2","A2")
+    assert(tagger.match("B2")==["tag2"])
+    assert(tagger.match("A2")==[])
 
 def test_tag_remove_nested():
     tagger = Categorizer(tag_nested_path,mode="tag")
@@ -89,6 +98,14 @@ def test_tag_remove_nested():
     tagger.remove("B1")
     assert(tagger.match("B1")==[])
     assert(tagger.match("B2")==["B23","B","tagABC","tag2"])
+
+def test_tag_remove_nested_2():
+    #Remove a single store from a nested tag
+    tagger = Categorizer(tag_nested_path,mode="tag")
+    assert(tagger.match("A2")==["A","tagABC","tag2"])
+    tagger.remove("A","A2")
+    assert(tagger.match("A1")==["A","tagABC"])
+    assert(tagger.match("A2")==["tag2"])
 
 def test_tag_remove_nested_parent():
     tagger = Categorizer(tag_nested_path,mode="tag")
