@@ -95,8 +95,10 @@ def create_unsorted(output_path):
             f.write("{date}, {amount}, {text}\n".format(date=date.strftime("%d/%m"),amount=amount,text=text))
 
 top_tags = summed_account.get_tags("==",0)
-top_tags.remove("Reservation")
-top_tags.remove("Överföring")
+if "Reservation" in top_tags:
+    top_tags.remove("Reservation")
+if "Överföring" in top_tags:
+    top_tags.remove("Överföring")
 top_tags.append("Alla")
 top_tags.append("Överskott eller Underskottt")
 create_average(top_tags,"./output/summaries/average_top_tags.txt")
