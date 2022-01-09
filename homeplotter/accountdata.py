@@ -2,6 +2,7 @@ import csv
 import re
 import datetime
 import copy
+import os
 
 from functools import reduce
 
@@ -22,16 +23,22 @@ def process_amount(amount_string):
     return amount        
 
 class AccountData():
-    def __init__(self, account_file=None, cat_file=None, tag_file = None, expense_data = None, **kwds):
-        self.columns = {"date":0,"amount":1,"text":2,"category":3,"tags":4}
-        self.column_types = {0:datetime.date,1:float,2:str,3:str,4:list}
+    def __init__(self, account_file=None, cat_file=None, tag_file = None, expense_data = None, scales = None, **kwds):
+        self.columns = {"date":0,"amount":1,"text":2,"category":3,"tags":4,"amount_unscaled":5,"account":6}
+        self.column_types = {0:datetime.date,1:float,2:str,3:str,4:list,5:float,6:str}
         self._daterange = []
         self._f_daterange = []
         
         if expense_data is None:
             self._expenses = []
+            #Get account name from file path or account_name parameter.
+            self._scales = {kwds.get('account_name',os.path.basename(account_file).split('.')[0]):1}
         else:
             self._expenses = expense_data
+            #Need to set scales otherwise we don't know how different data is scaled.
+            if scales is None:
+                raise ValueError("Expense data is set but not scales")
+            self._scales = scales
 
 
         if cat_file is not None:
@@ -40,7 +47,8 @@ class AccountData():
         if tag_file is not None:
             self.tagger = Categorizer(tag_file,mode="tag")
             
-        if account_file is not None:    
+        if account_file is not None:
+            account_name=kwds.get('account_name',os.path.basename(account_file).split('.')[0])    
             #Encoding is a bit weird, but got /ufeff otherwise https://stackoverflow.com/questions/53187097/how-to-read-file-in-python-withou-ufef
             with open(account_file, newline='',encoding='utf-8-sig') as csvfile:
                 accountreader = csv.reader(csvfile, delimiter=';')
@@ -57,7 +65,7 @@ class AccountData():
                 for row in accountreader:
                     category=self.categorizer.match(row[file_columns["text"]]) if hasattr(self,"categorizer") else "Uncategorized"
                     tags=self.tagger.match(row[file_columns["text"]]) if hasattr(self,"tagger") else []
-                    self._expenses.append([process_date(row[file_columns["date"]]),process_amount(row[file_columns["amount"]]),row[file_columns["text"]],category,tags])
+                    self._expenses.append([process_date(row[file_columns["date"]]),process_amount(row[file_columns["amount"]]),row[file_columns["text"]],category,tags,process_amount(row[file_columns["amount"]]),account_name])
         
         self._sort_dates()
         #After sorting, we can get the first and last date
@@ -195,6 +203,8 @@ class AccountData():
                     tags.append(tag)
         return tags
 
+    def get_scale(self,account):
+        return self._scales[account]
 
     #Sort date set to private, data that is returned should always be sorted
     def _sort_dates(self):
@@ -202,7 +212,9 @@ class AccountData():
 
     def __add__(self, other):
         expense_data=self._expenses+other._expenses
-        new_account = AccountData(expense_data=expense_data)
+        #Merge scales dictionaries: https://stackoverflow.com/questions/38987/how-do-i-merge-two-dictionaries-in-a-single-expression-take-union-of-dictionari
+        scales = {**self._scales,**other._scales}
+        new_account = AccountData(expense_data=expense_data,scales=scales)
         #Tagger needs to be added to the new account data object so that we can get levels from it later
         if hasattr(self,"tagger"):
             new_account.tagger = self.tagger
@@ -213,10 +225,12 @@ class AccountData():
     def __truediv__(self, divisor):
         #Needs to deep copy, otherwise the elements in the list are the same id.
         expense_data=copy.deepcopy(self._expenses)
+        scales = copy.deepcopy(self._scales)
         amount_col = self.columns["amount"]
         for i in range(len(expense_data)):
             expense_data[i][amount_col]=expense_data[i][amount_col]/divisor
-        new_account = AccountData(expense_data=expense_data)
+        scales={k: v / divisor for k, v in scales.items()}
+        new_account = AccountData(expense_data=expense_data,scales=scales)
         if hasattr(self,"tagger"):
             new_account.tagger = self.tagger
         if hasattr(self,"categorizer"):

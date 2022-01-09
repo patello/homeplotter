@@ -57,6 +57,20 @@ def test_div():
     assert(sum(acc_data.get_column("amount"))/2==sum(acc_data_div.get_column("amount")))
     assert(len(acc_data.get_data())==len(acc_data_div.get_data()))
 
+def test_div__property():
+    acc_data1 = AccountData(data_path1,cat_path)
+    acc_data2 = AccountData(data_path2,cat_path,account_name="other_data")
+
+    summed_account = acc_data1 + acc_data2/2
+
+    #Use the account name to get the scale of the account, either using the file name, or account name if given
+    assert(summed_account.get_scale("data1")==1)
+    assert(summed_account.get_scale("other_data")==1/2)
+
+    #Column 1 is the scaled amount and column 5 is the scaled amount
+    #Column 6 is the account name
+    assert(summed_account.get_data()[0][1] == summed_account.get_data()[0][5]*summed_account.get_scale(summed_account.get_data()[0][6]))
+
 def test_add__is_sorted():
     #Everything should still be sorted ascending by the first column (date) after adding two account data
     acc_data1 = AccountData(data_path1,cat_path)
