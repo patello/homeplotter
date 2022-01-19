@@ -48,24 +48,8 @@ class AccountData():
             self.tagger = Categorizer(tag_file,mode="tag")
             
         if account_file is not None:
-            account_name=kwds.get('account_name',os.path.basename(account_file).split('.')[0])    
-            #Encoding is a bit weird, but got /ufeff otherwise https://stackoverflow.com/questions/53187097/how-to-read-file-in-python-withou-ufef
-            with open(account_file, newline='',encoding='utf-8-sig') as csvfile:
-                accountreader = csv.reader(csvfile, delimiter=';')
-                #Skip the header line by first calling next
-                header_row = next(accountreader)
-                #Maybe clean this up and not have multiple try except
-                try: 
-                    file_columns = {"date":header_row.index("Bokföringsdag"),"amount":header_row.index("Belopp"),"text":header_row.index("Rubrik")}
-                except ValueError:
-                    try:
-                        file_columns = {"date":header_row.index("Datum"),"amount":header_row.index("Belopp"),"text":header_row.index("Text")}
-                    except ValueError:
-                        raise ValueError("Unsupported csv file structure.")
-                for row in accountreader:
-                    category=self.categorizer.match(row[file_columns["text"]]) if hasattr(self,"categorizer") else "Uncategorized"
-                    tags=self.tagger.match(row[file_columns["text"]]) if hasattr(self,"tagger") else []
-                    self._expenses.append([process_date(row[file_columns["date"]]),process_amount(row[file_columns["amount"]]),row[file_columns["text"]],category,tags,process_amount(row[file_columns["amount"]]),account_name])
+            account_name=kwds.get('account_name',os.path.basename(account_file).split('.')[0])   
+            self._account_reader(account_file,account_name)
         
         self._sort_dates()
         #After sorting, we can get the first and last date
@@ -205,6 +189,28 @@ class AccountData():
 
     def get_scale(self,account):
         return self._scales[account]
+
+    def update(self,file,account):
+        return
+
+    def _account_reader(self,account_file,account_name):
+        #Encoding is a bit weird, but got /ufeff otherwise https://stackoverflow.com/questions/53187097/how-to-read-file-in-python-withou-ufef
+        with open(account_file, newline='',encoding='utf-8-sig') as csvfile:
+            accountreader = csv.reader(csvfile, delimiter=';')
+            #Skip the header line by first calling next
+            header_row = next(accountreader)
+            #Maybe clean this up and not have multiple try except
+            try: 
+                file_columns = {"date":header_row.index("Bokföringsdag"),"amount":header_row.index("Belopp"),"text":header_row.index("Rubrik")}
+            except ValueError:
+                try:
+                    file_columns = {"date":header_row.index("Datum"),"amount":header_row.index("Belopp"),"text":header_row.index("Text")}
+                except ValueError:
+                    raise ValueError("Unsupported csv file structure.")
+            for row in accountreader:
+                    category=self.categorizer.match(row[file_columns["text"]]) if hasattr(self,"categorizer") else "Uncategorized"
+                    tags=self.tagger.match(row[file_columns["text"]]) if hasattr(self,"tagger") else []
+                    self._expenses.append([process_date(row[file_columns["date"]]),process_amount(row[file_columns["amount"]]),row[file_columns["text"]],category,tags,process_amount(row[file_columns["amount"]]),account_name])
 
     #Sort date set to private, data that is returned should always be sorted
     def _sort_dates(self):
