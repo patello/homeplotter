@@ -7,8 +7,8 @@ from homeplotter.accountdata import AccountData
 
 tag_file="./data/personal_tags.json"
 account_data1 = AccountData("./data/konto_gemensamt.csv",tag_file=tag_file)
-account_data2 = AccountData("./data/konto_personligt.csv",tag_file=tag_file)
-account_data3 = AccountData("./data/konto_ica.csv",tag_file=tag_file)
+account_data2 = AccountData("./data/konto_personligt.csv")
+account_data3 = AccountData("./data/konto_ica.csv")
 summed_account = (account_data1/2) + account_data2 + (account_data3/2)
 
 start_date = datetime.date(2021,2,1)

@@ -212,6 +212,10 @@ class AccountData():
                     tags=self.tagger.match(row[file_columns["text"]]) if hasattr(self,"tagger") else []
                     self._expenses.append([process_date(row[file_columns["date"]]),process_amount(row[file_columns["amount"]]),row[file_columns["text"]],category,tags,process_amount(row[file_columns["amount"]]),account_name])
 
+    def _retag(self):
+        for row in self._expenses:
+            row[self.columns["category"]]=self.categorizer.match(row[self.columns["text"]]) if hasattr(self,"categorizer") else "Uncategorized"
+            row[self.columns["tags"]]=self.tagger.match(row[self.columns["text"]]) if hasattr(self,"tagger") else []
     #Sort date set to private, data that is returned should always be sorted
     def _sort_dates(self):
         self._expenses=sorted(self._expenses, key = lambda l:l[0])
@@ -224,8 +228,13 @@ class AccountData():
         #Tagger needs to be added to the new account data object so that we can get levels from it later
         if hasattr(self,"tagger"):
             new_account.tagger = self.tagger
+        elif hasattr(other,"tagger"):
+            new_account.tagger = other.tagger
         if hasattr(self,"categorizer"):
             new_account.categorizer = self.categorizer
+        if hasattr(other,"categorizer"):
+            new_account.categorizer = other.categorizer
+        new_account._retag()
         return new_account
 
     def __truediv__(self, divisor):
