@@ -190,8 +190,20 @@ class AccountData():
     def get_scale(self,account):
         return self._scales[account]
 
-    def update(self,file,account):
-        return
+    def update(self,account_file,account_name):
+        updated_account = AccountData(account_file,account_name=account_name)
+        updated_account = updated_account / (1/self.get_scale(account_name))
+        if hasattr(self,"tagger"):
+            updated_account.tagger = self.tagger
+        if hasattr(self,"categorizer"):
+            updated_account.categorizer = self.categorizer
+        updated_account._retag()
+        self._trim_date(updated_account._daterange[0],account_name)
+        self._expenses = self._expenses + updated_account._expenses
+        self._sort_dates()
+        #After supdated_accountorting, we can get the first and last date
+        self._daterange=[self._expenses[0][0],self._expenses[-1][0]]
+        self.reset_filter()
 
     def _account_reader(self,account_file,account_name):
         #Encoding is a bit weird, but got /ufeff otherwise https://stackoverflow.com/questions/53187097/how-to-read-file-in-python-withou-ufef
@@ -216,6 +228,15 @@ class AccountData():
         for row in self._expenses:
             row[self.columns["category"]]=self.categorizer.match(row[self.columns["text"]]) if hasattr(self,"categorizer") else "Uncategorized"
             row[self.columns["tags"]]=self.tagger.match(row[self.columns["text"]]) if hasattr(self,"tagger") else []
+
+    def _trim_date(self,cut_off_date,account_name):
+        trim_rows = []
+        for row in self._expenses:
+            if ((row[self.columns["account"]] == account_name) and (row[self.columns["date"]] >= cut_off_date)):
+                trim_rows.append(row)
+        for row in trim_rows:
+            self._expenses.remove(row)
+
     #Sort date set to private, data that is returned should always be sorted
     def _sort_dates(self):
         self._expenses=sorted(self._expenses, key = lambda l:l[0])
@@ -251,7 +272,7 @@ class AccountData():
         if hasattr(self,"categorizer"):
             new_account.categorizer = self.categorizer
         return new_account
-
+    
 
 if __name__ == "__main__":
     cat_file="./example_data/categories.json"
