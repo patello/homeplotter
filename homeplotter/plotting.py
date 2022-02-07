@@ -91,7 +91,8 @@ def create_unsorted(output_path):
     summed_account.filter_data("tags","==",[])
     summed_account.filter_data("date",">=",start_date)
     with open(output_path, "w") as f:
-        for (date,amount,text,category,tags) in summed_account.get_data():
+        #TODO: Rewrite and get columns in order to not be debendent on get_data() return length
+        for (date,amount,text,category,tags,original_amount,account) in summed_account.get_data():
             f.write("{date}, {amount}, {text}\n".format(date=date.strftime("%d/%m"),amount=amount,text=text))
 
 top_tags = summed_account.get_tags("==",0)
