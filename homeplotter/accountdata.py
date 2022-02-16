@@ -3,6 +3,7 @@ import re
 import datetime
 import copy
 import os
+import ast
 
 from functools import reduce
 
@@ -205,24 +206,50 @@ class AccountData():
         self._daterange=[self._expenses[0][0],self._expenses[-1][0]]
         self.reset_filter()
 
+    def save(self,file_path):
+        with open(file_path, 'w', newline='') as csvfile:
+            writer = csv.writer(csvfile, delimiter=';',
+                                quotechar='|', quoting=csv.QUOTE_MINIMAL)
+            writer.writerow(list(self.columns.keys()))
+            for row in self._expenses:
+                writer.writerow(row)
+        
+
     def _account_reader(self,account_file,account_name):
         #Encoding is a bit weird, but got /ufeff otherwise https://stackoverflow.com/questions/53187097/how-to-read-file-in-python-withou-ufef
         with open(account_file, newline='',encoding='utf-8-sig') as csvfile:
             accountreader = csv.reader(csvfile, delimiter=';')
             #Skip the header line by first calling next
             header_row = next(accountreader)
-            #Maybe clean this up and not have multiple try except
-            try: 
-                file_columns = {"date":header_row.index("Bokföringsdag"),"amount":header_row.index("Belopp"),"text":header_row.index("Rubrik")}
-            except ValueError:
-                try:
-                    file_columns = {"date":header_row.index("Datum"),"amount":header_row.index("Belopp"),"text":header_row.index("Text")}
+            #Check if header_row contains all information from used columns. Then it is a saved AccountData object
+            if (list(self.columns.keys()) == header_row):
+                #Copy the content:
+                for row in accountreader:
+                    #TODO: Optimze so that we don't do lookup for each row 
+                    append_row=[]
+                    for column_i in range(0,len(row)):
+                        if(self.column_types[column_i]==datetime.date):
+                            append_row.append(datetime.datetime.strptime(row[column_i],"%Y-%m-%d").date())
+                        elif(self.column_types[column_i]==list):
+                            append_row.append(ast.literal_eval(row[column_i]))
+                        else:
+                        #TODO: Fix.. This seems dangerous...
+                           append_row.append(self.column_types[column_i](row[column_i]))
+                    self._expenses.append(append_row)
+            #Otherwise it is a csv account file
+            else:
+                #Maybe clean this up and not have multiple try except
+                try: 
+                    file_columns = {"date":header_row.index("Bokföringsdag"),"amount":header_row.index("Belopp"),"text":header_row.index("Rubrik")}
                 except ValueError:
-                    raise ValueError("Unsupported csv file structure.")
-            for row in accountreader:
-                    category=self.categorizer.match(row[file_columns["text"]]) if hasattr(self,"categorizer") else "Uncategorized"
-                    tags=self.tagger.match(row[file_columns["text"]]) if hasattr(self,"tagger") else []
-                    self._expenses.append([process_date(row[file_columns["date"]]),process_amount(row[file_columns["amount"]]),row[file_columns["text"]],category,tags,process_amount(row[file_columns["amount"]]),account_name])
+                    try:
+                        file_columns = {"date":header_row.index("Datum"),"amount":header_row.index("Belopp"),"text":header_row.index("Text")}
+                    except ValueError:
+                        raise ValueError("Unsupported csv file structure.")
+                for row in accountreader:
+                        category=self.categorizer.match(row[file_columns["text"]]) if hasattr(self,"categorizer") else "Uncategorized"
+                        tags=self.tagger.match(row[file_columns["text"]]) if hasattr(self,"tagger") else []
+                        self._expenses.append([process_date(row[file_columns["date"]]),process_amount(row[file_columns["amount"]]),row[file_columns["text"]],category,tags,process_amount(row[file_columns["amount"]]),account_name])
 
     def _retag(self):
         for row in self._expenses:

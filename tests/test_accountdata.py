@@ -175,15 +175,14 @@ def test_get_tags_level():
     #Since there are only 2 levels, getting all levels that are less than 3 should give back all tags
     assert(acc_data.get_tags("<",3) == acc_data.get_tags())
 
-@pytest.mark.skip(reason="Save/load not implemented")
-def test_save_load():
+def test_save_load(tmp_path):
     acc_data = AccountData(data_path1,tag_file=tag_nested_path)
-    acc_data.save("./temp/test_data.csv")
-    acc_data_loaded = AccountData("./temp/test_data.csv")
+    acc_data.save(tmp_path/"test_save_load_data.csv")
+    acc_data_loaded = AccountData(tmp_path/"test_save_load_data.csv")
 
     #Saving and loading should not affect data
-    acc_data._expenses == acc_data._expenses
-    acc_data._daterange == acc_data._daterange
+    acc_data._expenses == acc_data_loaded._expenses
+    acc_data._daterange == acc_data_loaded._daterange
 
 if __name__=="__main__":
     test_init()
