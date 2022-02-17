@@ -24,7 +24,7 @@ def process_amount(amount_string):
     return amount        
 
 class AccountData():
-    def __init__(self, account_file=None, cat_file=None, tag_file = None, expense_data = None, scales = None, **kwds):
+    def __init__(self, account_file=None, tag_file = None, expense_data = None, scales = None, **kwds):
         self.columns = {"date":0,"amount":1,"text":2,"category":3,"tags":4,"amount_unscaled":5,"account":6}
         self.column_types = {0:datetime.date,1:float,2:str,3:str,4:list,5:float,6:str}
         self._daterange = []
@@ -41,12 +41,8 @@ class AccountData():
                 raise ValueError("Expense data is set but not scales")
             self._scales = scales
 
-
-        if cat_file is not None:
-            self.categorizer = Categorizer(cat_file)
-
         if tag_file is not None:
-            self.tagger = Categorizer(tag_file,mode="tag")
+            self.tagger = Categorizer(tag_file)
             
         if account_file is not None:
             account_name=kwds.get('account_name',os.path.basename(account_file).split('.')[0])   
@@ -57,11 +53,8 @@ class AccountData():
         self._daterange=[self._expenses[0][0],self._expenses[-1][0]]
         self.reset_filter()
 
-    def get_data(self,category=None):
-        if category is not None:
-            return list(filter(lambda x : x[3]==category,self._f_expenses))
-        else:
-            return list(self._f_expenses)
+    def get_data(self):
+        return list(self._f_expenses)
 
     def filter_data(self,column,operator,value):
         #Dict which defines which values are accepted for different column types
@@ -127,14 +120,14 @@ class AccountData():
         self._f_expenses = self._expenses.copy()
         self._f_daterange = self._daterange.copy()
 
-    def get_column(self, column, category=None):
-        return [row[self.columns[column]] for row in self.get_data(category)]
+    def get_column(self, column):
+        return [row[self.columns[column]] for row in self.get_data()]
 
-    def get_timeseries(self,category=None):
-        return TimeSeries(self.get_data(category),daterange=self._f_daterange)
+    def get_timeseries(self):
+        return TimeSeries(self.get_data(),daterange=self._f_daterange)
     
-    def get_average(self,unit,category=None):
-        ts = self.get_timeseries(category)
+    def get_average(self,unit):
+        ts = self.get_timeseries()
         ts.accumulate(1,unit)
         expenses = [data[1] for data in ts.data]
         if len(expenses)>0:
@@ -145,13 +138,6 @@ class AccountData():
     def get_total(self):
         expenses = [data[1] for data in self._f_expenses]
         return sum(expenses)
-
-    def get_categories(self):
-        categories = []
-        for data in self._f_expenses:
-            if data[3] not in categories:
-                categories.append(data[3])
-        return categories
 
     def get_tags(self,operator=">=",level=0):
         tags = []

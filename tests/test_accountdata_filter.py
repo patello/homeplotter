@@ -37,11 +37,6 @@ def test_filter__amount(fun):
         elif fun == "<":
             assert(amount<200)
 
-def test_filter__category():
-    acc_data1 = AccountData(data_path1,cat_path)
-    acc_data1.filter_data("category","==","cat2")
-    assert(acc_data1.get_column("category")[0]=="cat2")
-
 def test_filter__type_ok():
     acc_data1 = AccountData(data_path1,cat_path)
     acc_data1.filter_data("amount",">",100)
@@ -70,14 +65,7 @@ def test_reset_filter():
     reset_data = acc_data1.get_data()
     assert(original_data==reset_data)
     assert(reset_data!=filtered_data)
-
-def test_filter__categories():
-    acc_data = AccountData(data_path1,cat_path)
-    acc_data.filter_data("category","!=","cat1")
-    assert("cat1" not in acc_data.get_categories())
-    acc_data.filter_data("category","==","cat3")
-    assert(acc_data.get_categories()==["cat3"])
-
+    
 def test_filter__tags():
     acc_data = AccountData(data_path1,tag_file=tag_path)
     acc_data.filter_data("tags","!=","tag1")
@@ -128,8 +116,8 @@ def test_filter__empty():
     acc_data.filter_data("amount",">=",300)
     acc_data.filter_data("amount","<",300)
     assert(len(acc_data.get_data())==0)
-    #Categories should also be empty
-    assert(len(acc_data.get_categories())==0)
+    #Tags should also be empty
+    assert(len(acc_data.get_tags())==0)
     #It should be possible to still call get_timeseries()
     assert(type(acc_data.get_timeseries())==TimeSeries)
 

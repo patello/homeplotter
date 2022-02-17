@@ -4,19 +4,14 @@ import collections
 from typing import List
 
 class Categorizer():
-    def __init__(self, cfile, mode="categorize"):
-        if mode in ["categorize","tag"]:
-            self._mode = mode
-        else:
-            raise ValueError("Unknown mode: {mode}".format(mode=mode))
+    def __init__(self, cfile):
         with open(cfile) as json_file:
             data = json.load(json_file)
             #Using ordered dict since I need to makes sure it's the last key that matches everything.
             #Seems like we can use an ordinary dict from python 3.7 and on. 
             self._rec_cat = collections.OrderedDict(data)
             self._tag_parents = {}
-            if self._mode=="categorize":
-                self._rec_cat["Uncategorized"] = [""]
+
             def tag_flattening(tag_list,tag=None):
                 if type(tag_list) is list:
                     flattened_tags = {tag:tag_list}
@@ -55,29 +50,21 @@ class Categorizer():
         r_text = r_text.replace("K*","")
         r_text = r_text.replace("C*","")
         r_text = r_text.replace("*","")
-        if self._mode=="categorize":
-            for category in self._rec_cat:
-                reg_exp = "(?i)\\b("+"|".join(self._rec_cat[category])+")\\b"
-                if not re.search(reg_exp,r_text) is None:
-                    return category
-        elif self._mode=="tag":
-            matches = []
-            for tag in self._rec_cat:
-                reg_exp = "(?i)\\b("+"|".join(self._rec_cat[tag])+")\\b"
-                if self._rec_cat[tag] != [] and not re.search(reg_exp,r_text) is None:
-                    matches.append(tag)
-                    #Check if it has a parent, and add those recursively as well.
-                    parent_tag = self._tag_parents.get(tag,None)
-                    while parent_tag is not None:
-                        matches.append(parent_tag)
-                        parent_tag = self._tag_parents.get(parent_tag,None)
-            return matches
+        
+        matches = []
+        for tag in self._rec_cat:
+            reg_exp = "(?i)\\b("+"|".join(self._rec_cat[tag])+")\\b"
+            if self._rec_cat[tag] != [] and not re.search(reg_exp,r_text) is None:
+                matches.append(tag)
+                #Check if it has a parent, and add those recursively as well.
+                parent_tag = self._tag_parents.get(tag,None)
+                while parent_tag is not None:
+                    matches.append(parent_tag)
+                    parent_tag = self._tag_parents.get(parent_tag,None)
+        return matches
 
         #Throw exception?
         return None
-
-    def categories(self):
-        return dict.keys(self._rec_cat)
     
     def get_levels(self):
         tag_levels = {}
@@ -98,7 +85,6 @@ class Categorizer():
         return level
 
     def append(self,tag,text,parent_tag=None):
-        #For the purposes of this function, a tag can also be a category if mode ="Category"
         #Check if tag already exists.
         if tag in self._rec_cat:
             #If it exists, append the text to the list or dict
@@ -113,9 +99,6 @@ class Categorizer():
             self._rec_cat[tag]=[text]
             if parent_tag is not None:
                 self._tag_parents[tag]=parent_tag
-            if self._mode=="categorize":
-                #If mode is categorize, the "Uncategorized function need to be moved to the end of the dict
-                self._rec_cat.move_to_end("Uncategorized")
 
     def remove(self,tag,reciever=None):
         if reciever is None:
@@ -167,5 +150,5 @@ class Categorizer():
         catFile.close()
 
 if __name__=="__main__":
-    categorizer = Categorizer("/root/projects/homeplotter/example_data/categories.json")
+    categorizer = Categorizer("/root/projects/homeplotter/example_data/tags_nested.json")
     print(categorizer.match("Kortköp 201227 A*2"))
