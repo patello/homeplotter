@@ -58,9 +58,15 @@ def test_div__property():
     assert(summed_account.get_scale("data1")==1)
     assert(summed_account.get_scale("other_data")==1/2)
 
-    #Column 1 is the scaled amount and column 5 is the scaled amount
-    #Column 6 is the account name
-    assert(summed_account.get_data()[0][1] == summed_account.get_data()[0][5]*summed_account.get_scale(summed_account.get_data()[0][6]))
+    amount_col = summed_account.columns["amount"]
+    amount_unscaled = summed_account.columns["amount_unscaled"]
+    account_col = summed_account.columns["account"]
+
+    assert(
+        summed_account.get_data()[0][amount_col] == 
+        summed_account.get_data()[0][amount_unscaled]
+        *summed_account.get_scale(summed_account.get_data()[0][account_col])
+        )
 
 def test_add__is_sorted():
     #Everything should still be sorted ascending by the first column (date) after adding two account data

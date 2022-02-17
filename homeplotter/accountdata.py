@@ -25,8 +25,8 @@ def process_amount(amount_string):
 
 class AccountData():
     def __init__(self, account_file=None, tag_file = None, expense_data = None, scales = None, **kwds):
-        self.columns = {"date":0,"amount":1,"text":2,"category":3,"tags":4,"amount_unscaled":5,"account":6}
-        self.column_types = {0:datetime.date,1:float,2:str,3:str,4:list,5:float,6:str}
+        self.columns = {"date":0,"amount":1,"text":2,"tags":3,"amount_unscaled":4,"account":5}
+        self.column_types = {0:datetime.date,1:float,2:str,3:list,4:float,5:str}
         self._daterange = []
         self._f_daterange = []
         
@@ -167,9 +167,9 @@ class AccountData():
             level_test_fun = lambda tag: tag in tag_list
         else:
             raise ValueError("Unsuported operator \"{operator}\". Only ==, >=, >, < and <= are supported.".format(operator=operator))
-
+        tag_column = self.columns["tags"]
         for data in self._f_expenses:
-            for tag in data[4]:
+            for tag in data[tag_column]:
                 if tag not in tags and level_test_fun(tag):
                     tags.append(tag)
         return tags
@@ -182,8 +182,6 @@ class AccountData():
         updated_account = updated_account / (1/self.get_scale(account_name))
         if hasattr(self,"tagger"):
             updated_account.tagger = self.tagger
-        if hasattr(self,"categorizer"):
-            updated_account.categorizer = self.categorizer
         updated_account._retag()
         self._trim_date(updated_account._daterange[0],account_name)
         self._expenses = self._expenses + updated_account._expenses
@@ -233,13 +231,11 @@ class AccountData():
                     except ValueError:
                         raise ValueError("Unsupported csv file structure.")
                 for row in accountreader:
-                        category=self.categorizer.match(row[file_columns["text"]]) if hasattr(self,"categorizer") else "Uncategorized"
                         tags=self.tagger.match(row[file_columns["text"]]) if hasattr(self,"tagger") else []
-                        self._expenses.append([process_date(row[file_columns["date"]]),process_amount(row[file_columns["amount"]]),row[file_columns["text"]],category,tags,process_amount(row[file_columns["amount"]]),account_name])
+                        self._expenses.append([process_date(row[file_columns["date"]]),process_amount(row[file_columns["amount"]]),row[file_columns["text"]],tags,process_amount(row[file_columns["amount"]]),account_name])
 
     def _retag(self):
         for row in self._expenses:
-            row[self.columns["category"]]=self.categorizer.match(row[self.columns["text"]]) if hasattr(self,"categorizer") else "Uncategorized"
             row[self.columns["tags"]]=self.tagger.match(row[self.columns["text"]]) if hasattr(self,"tagger") else []
 
     def _trim_date(self,cut_off_date,account_name):
@@ -264,10 +260,6 @@ class AccountData():
             new_account.tagger = self.tagger
         elif hasattr(other,"tagger"):
             new_account.tagger = other.tagger
-        if hasattr(self,"categorizer"):
-            new_account.categorizer = self.categorizer
-        if hasattr(other,"categorizer"):
-            new_account.categorizer = other.categorizer
         new_account._retag()
         return new_account
 

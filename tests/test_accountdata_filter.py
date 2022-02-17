@@ -42,7 +42,6 @@ def test_filter__type_ok():
     acc_data1.filter_data("amount",">",100)
     acc_data1.filter_data("amount",">",200.5)
     acc_data1.filter_data("text","!=","test")
-    acc_data1.filter_data("category","==","cat1")
     acc_data1.filter_data("date",">",datetime.date(2021,1,4))
 
 def test_filter__type_wrong():
