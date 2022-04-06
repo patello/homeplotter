@@ -6,9 +6,9 @@ import math
 from homeplotter.accountdata import AccountData 
 
 tag_file="./data/personal_tags.json"
-account_data1 = AccountData("./data/konto_gemensamt.csv",tag_file=tag_file)
-account_data2 = AccountData("./data/konto_personligt.csv")
-account_data3 = AccountData("./data/konto_ica.csv")
+account_data1 = AccountData("./data/old/konto_gemensamt.csv",tag_file=tag_file)
+account_data2 = AccountData("./data/old/konto_personligt.csv")
+account_data3 = AccountData("./data/old/konto_ica.csv")
 summed_account = (account_data1/2) + account_data2 + (account_data3/2)
 
 start_date = datetime.date(2021,2,1)
@@ -96,6 +96,16 @@ def create_unsorted(output_path):
             amount = data[summed_account.columns["amount"]]
             text = data[summed_account.columns["text"]]
             f.write("{date}, {amount}, {text}\n".format(date=date.strftime("%d/%m"),amount=amount,text=text))
+
+def create_month_sums(output_path):
+    month=datetime.date.today().month
+    year=datetime.date.today().year
+    while(month != start_date.month and year != start_date.year):
+        summed_account.reset_filter()
+        summed_account.filter_data("date",">=",datetime.date(1,month,year))
+        summed_account.filter_data("date","<",datetime.date(1, month+1 if month != 12 else 1,year if month != 12 else year+1))
+        
+    
 
 top_tags = summed_account.get_tags("==",0)
 if "Reservation" in top_tags:
