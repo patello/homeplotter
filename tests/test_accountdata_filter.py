@@ -84,6 +84,13 @@ def test_filter__tag_list():
     #Should only contain the once that contains all the tags.
     assert(sorted(acc_data.get_tags())==sorted(["tag1","överföring"]))
 
+def test_filter__tag_list_order():
+    acc_data = AccountData(data_path1,tag_file=tag_path)
+    #If the order of the tags is different, then it should still yield the same result
+    acc_data.filter_data("tags","==",["överföring","tag1"])
+    #Should only contain the once that contains all the tags.
+    assert(sorted(acc_data.get_tags())==sorted(["tag1","överföring"]))
+
 def test_filter__multi_tags_list():
     #If a data point has multiple tags, those tags should be preserved even if list is used
     acc_data = AccountData(data_path1,tag_file=tag_path)
