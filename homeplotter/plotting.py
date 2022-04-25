@@ -96,6 +96,15 @@ def create_unsorted(output_path):
             amount = data[summed_account.columns["amount"]]
             text = data[summed_account.columns["text"]]
             f.write("{date}, {amount}, {text}\n".format(date=date.strftime("%d/%m"),amount=amount,text=text))
+    summed_account.reset_filter()
+    summed_account.filter_data("tags","==",["Reservation"])
+    summed_account.filter_data("date",">=",start_date)
+    with open(output_path, "a") as f:
+        for data in summed_account.get_data():
+            date = data[summed_account.columns["date"]]
+            amount = data[summed_account.columns["amount"]]
+            text = data[summed_account.columns["text"]]
+            f.write("{date}, {amount}, {text}\n".format(date=date.strftime("%d/%m"),amount=amount,text=text))
 
 def create_month_sums(output_path):
     month=datetime.date.today().month
