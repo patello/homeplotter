@@ -97,6 +97,13 @@ def test_filter__multi_tags_list():
     acc_data.filter_data("tags","==",["överföring"])
     assert(acc_data.get_tags()==["överföring"])
 
+def test_filter__multi_tags_all():
+    #When filtering "all" with a list, other tags in list should be kept
+    acc_data = AccountData(data_path1,tag_file=tag_path)
+    acc_data.filter_data("tags","all",["överföring"])
+    assert("överföring" in acc_data.get_tags())
+    assert(len(acc_data.get_tags())>1)
+
 def test_filter__tag_empty():
     acc_data = AccountData(data_path1,tag_file=tag_path)
     #Should only return those that lack any tags.

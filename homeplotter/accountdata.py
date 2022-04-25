@@ -84,11 +84,8 @@ class AccountData():
                 filter_fun = lambda data: sorted(data[col_i])==sorted(value)
             else:
                 filter_fun = lambda data: len(data[col_i])==0
-        #TODO: Add test for this
-        #This is the old == list operator. 
         elif operator == "all" and col_type == list and val_type == list:
             filter_fun = lambda data: all(v in data[col_i] for v in value)
-            #TODO: Check what happens if list is empty
         elif operator == "!=" and col_type != list:
             filter_fun = lambda data:data[col_i] != value
         elif operator == "!=" and col_type == list and val_type == str:
@@ -110,7 +107,7 @@ class AccountData():
             filter_fun = lambda data:data[col_i] <= value
         else:
             #TODO: Add any/all to this message
-            raise ValueError("Unsuported operator \"{operator}\". Only ==, >=, >, < and <= are supported.".format(operator=operator))
+            raise ValueError("Unsuported operator \"{operator}\". Only ==, >=, >, <, <=, and all are supported.".format(operator=operator))
         
         if column == "date" and (operator == ">" or operator == ">=" or operator == "=="):
             new_value = value if operator != ">" else value + datetime.timedelta(1)
