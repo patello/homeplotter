@@ -92,10 +92,10 @@ def test_filter__tag_list_order():
     assert(sorted(acc_data.get_tags())==sorted(["tag1","överföring"]))
 
 def test_filter__multi_tags_list():
-    #If a data point has multiple tags, those tags should be preserved even if list is used
+    #When filtering with a list, only the tags with that litteral list should kept
     acc_data = AccountData(data_path1,tag_file=tag_path)
     acc_data.filter_data("tags","==",["överföring"])
-    assert(len(acc_data.get_tags())>1)
+    assert(acc_data.get_tags()==["överföring"])
 
 def test_filter__tag_empty():
     acc_data = AccountData(data_path1,tag_file=tag_path)
