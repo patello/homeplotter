@@ -108,7 +108,6 @@ class AccountData():
         elif operator == "<=":
             filter_fun = lambda data:data[col_i] <= value
         else:
-            #TODO: Add any/all to this message
             raise ValueError("Unsuported operator \"{operator}\". Only ==, >=, >, <, <=, any and all are supported.".format(operator=operator))
         
         if column == "date" and (operator == ">" or operator == ">=" or operator == "=="):
