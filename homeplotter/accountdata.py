@@ -11,7 +11,10 @@ from homeplotter.categorizer import Categorizer
 from homeplotter.timeseries import TimeSeries
 
 def process_date(date_string):
-    return datetime.datetime.strptime(date_string,"%Y-%m-%d").date()
+    if("-" in date_string):
+        return datetime.datetime.strptime(date_string,"%Y-%m-%d").date()
+    else:
+        return datetime.datetime.strptime(date_string,"%Y.%m.%d").date()
 
 def process_amount(amount_string):
     #Replace the decimal comma with a dot
@@ -217,7 +220,10 @@ class AccountData():
                     append_row=[]
                     for column_i in range(0,len(row)):
                         if(self.column_types[column_i]==datetime.date):
-                            append_row.append(datetime.datetime.strptime(row[column_i],"%Y-%m-%d").date())
+                            if(self.column_types[column_i]==datetime.date):
+                                append_row.append(datetime.datetime.strptime(row[column_i],"%Y-%m-%d").date())
+                            else:
+                                append_row.append(datetime.datetime.strptime(row[column_i],"%Y.%m.%d").date())
                         elif(self.column_types[column_i]==list):
                             append_row.append(ast.literal_eval(row[column_i]))
                         else:
