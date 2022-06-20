@@ -9,7 +9,8 @@ tag_file="./data/personal_tags.json"
 account_data1 = AccountData("./data/old/konto_gemensamt.csv",tag_file=tag_file)
 account_data2 = AccountData("./data/old/konto_personligt.csv")
 account_data3 = AccountData("./data/old/konto_ica.csv")
-summed_account = (account_data1/2) + account_data2 + (account_data3/2)
+account_data4 = AccountData("./data/old/konto_reimbursments.csv")
+summed_account = (account_data1/2) + account_data2 + (account_data3/2) + account_data4
 
 start_date = datetime.date(2021,2,1)
 
