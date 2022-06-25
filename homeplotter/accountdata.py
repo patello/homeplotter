@@ -87,10 +87,20 @@ class AccountData():
                 filter_fun = lambda data: sorted(data[col_i])==sorted(value)
             else:
                 filter_fun = lambda data: len(data[col_i])==0
-        elif operator == "all" and col_type == list and val_type == list:
-            filter_fun = lambda data: all(v in data[col_i] for v in value)
-        elif operator == "any" and col_type == list and val_type == list:
-            filter_fun = lambda data: any(v in data[col_i] for v in value)
+        elif operator in ["all", "any"] and col_type == list and val_type == list:
+            exclude = []
+            for i in range(len(value)):
+                #Check if first letter is "*", then add children to exclusion list
+                if value[i][0] == "*":
+                    #Remove the asterix and add children to exclusion list
+                    value[i] = value[i][1:]
+                    exclude += self.tagger.get_tag_children(value[i])
+            #Remove any children from exclusion list that are also in the inclusion list 
+            exclude = list(filter(lambda elem: elem not in value,exclude))                 
+            if operator == "any":
+                filter_fun = lambda data: any(v in data[col_i] for v in value) and not any(v in data[col_i] for v in exclude)
+            elif operator == "all":
+                filter_fun = lambda data: all(v in data[col_i] for v in value) and not any(v in data[col_i] for v in exclude)
         elif operator == "!=" and col_type != list:
             filter_fun = lambda data:data[col_i] != value
         elif operator == "!=" and col_type == list and val_type == str:
@@ -180,6 +190,39 @@ class AccountData():
                 if tag not in tags and level_test_fun(tag):
                     tags.append(tag)
         return tags
+
+    #Get tags where the monthly average is over a certain limit. Merge tags that are below the limit.
+    #Returns a dictionary with tag name or merged name, and list of tags it contains.
+    def get_tags_by_average(self,avg_lim):
+        #Keep the filtered date range since this function will reset the filter
+        daterange = self._f_daterange
+        def _rec_get_tags_by_average(tags, parent, res_tag_dict):
+            merge_tags = []
+            for tag in tags:
+                self.reset_filter()
+                self.filter_data("date",">=",daterange[0])
+                self.filter_data("date","<=",daterange[1])
+                self.filter_data("tags","==",tag)
+                #Take the tag total and divide it by the time period in days dividied
+                #by the average number of days in a month (30.437 days)
+                tag_avg = self.get_total()/((daterange[1]-daterange[0]).days/30.437)
+                if tag_avg >= avg_lim * 2:
+                    child_tags = self.tagger.get_tag_children(tag)
+                    _rec_get_tags_by_average(child_tags, tag, res_tag_dict)
+                elif tag_avg > avg_lim:
+                    res_tag_dict.update({tag:tag})
+                else:
+                    merge_tags.append(tag)
+
+
+
+            return res_tag_dict
+
+        top_tags = self.get_tags("==",0)
+        return _rec_get_tags_by_average(top_tags, {})
+
+    
+
 
     def get_scale(self,account):
         return self._scales[account]

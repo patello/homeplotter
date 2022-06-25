@@ -5,6 +5,7 @@ from homeplotter.accountdata import AccountData
 
 resource_path = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', 'example_data'))
 tag_path = os.path.join(resource_path,"tags.json")
+tag_path_nested = os.path.join(resource_path,"tags_nested.json")
 data_path1 = os.path.join(resource_path,"data1.csv")
 data_path2 = os.path.join(resource_path,"data2.csv")
 
@@ -72,3 +73,21 @@ def test_filter__not_tag_empty():
     #Should only return those that has tags
     acc_data.filter_data("tags","!=",[])
     assert(all(len(tags)>0 for tags in acc_data.get_column("tags")))
+
+def test_filter__tags_asterix():
+    acc_data = AccountData(data_path1,tag_file=tag_path_nested)
+    #Filter tags that have the tagABC tag, but are not its children
+    acc_data.filter_data("tags","any",["*tagABC"])
+    assert(acc_data.get_tags()==["tagABC", "tag2"])
+    #Any and all work pretty much the same in this example. Multiple astrix work.
+    acc_data.reset_filter()
+    acc_data.filter_data("tags","all",["*tag2","*tagABC"])
+    assert(acc_data.get_tags()==["tagABC", "tag2"])
+    #Tags from a lower level works as well
+    acc_data.reset_filter()
+    acc_data.filter_data("tags","any",["*B"])
+    assert(acc_data.get_tags()==['B', 'tagABC'])
+    #Child tags should not be excluded if they are part of the list
+    acc_data.reset_filter()
+    acc_data.filter_data("tags","all",["*B","B1"])
+    assert(acc_data.get_tags()==['B1','B', 'tagABC'])

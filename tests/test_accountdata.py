@@ -19,7 +19,7 @@ def test_get_data():
     #Check that data corresponds to the first entry
     assert(acc_data1.get_data()[0][acc_data1.columns['amount']] == 100)
     #And that lenght is correct
-    assert(len(acc_data1.get_data()) == 19)
+    assert(len(acc_data1.get_data()) == 20)
 
 def test_get_data__is_sorted():
     #Everything should sorted ascending by the first column (date) after initialization
