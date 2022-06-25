@@ -149,6 +149,14 @@ class Categorizer():
         catFile.write(data)
         catFile.close()
 
+    #TODO Write test
+    def get_tag_children(self,parent):
+        children = []
+        for tag in self._tag_parents:
+            if self._tag_parents[tag] == parent:
+                children.append(tag)
+        return children
+
 if __name__=="__main__":
     categorizer = Categorizer("/root/projects/homeplotter/example_data/tags_nested.json")
     print(categorizer.match("Kortköp 201227 A*2"))
