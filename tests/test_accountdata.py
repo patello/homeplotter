@@ -169,6 +169,18 @@ def test_get_tags_by_average():
     assert(acc_data.get_tags_by_average(100000,other_suffix="Övrig")=={'Övrig': ['tag2', 'tagABC']})
     assert(acc_data.get_tags_by_average(0)=={'tag2': ['tag2'], 'A': ['A'], 'B1': ['B1'], 'B23': ['B23'], 'tagABC, Other': ['*tagABC', '*B']})
 
+def test_get_tags_by_average__keep_filter():
+    acc_data = AccountData(data_path1,tag_file=tag_nested_path)
+    acc_data.filter_data("tags","!=","tag2")
+    #Calling get_tags_by_average should not mess upp the filter
+    original_data = acc_data.get_data()
+    original_daterange = acc_data._f_daterange
+    acc_data.get_tags_by_average(10000)
+    new_data = acc_data.get_data()
+    new_daterange = acc_data._f_daterange
+    assert(original_data==new_data)
+    assert(original_daterange==new_daterange)
+
 if __name__=="__main__":
     test_init()
     test_get_data()

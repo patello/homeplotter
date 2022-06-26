@@ -196,14 +196,13 @@ class AccountData():
     #Get tags where the monthly average is over a certain limit. Merge tags that are below the limit.
     #Returns a dictionary with tag name or merged name, and list of tags it contains.
     def get_tags_by_average(self,avg_lim,other_suffix = "Other"):
-        #Keep the filtered date range since this function will reset the filter
         daterange = self._f_daterange
+        #Keep the filtered data since this function will call the filter function
+        f_expenses_org = list(self._f_expenses)
         def _rec_get_tags_by_average(tags, parent, res_tag_dict):
             merge_tags = ["*"+parent] if parent != "" else []
             for tag in tags:
-                self.reset_filter()
-                self.filter_data("date",">=",daterange[0])
-                self.filter_data("date","<=",daterange[1])
+                self._f_expenses = list(f_expenses_org)
                 self.filter_data("tags","any",[tag])
                 #Take the tag total and divide it by the time period in days dividied
                 #by the average number of days in a month (30.437 days)
@@ -219,9 +218,7 @@ class AccountData():
                     res_tag_dict.update({tag:[tag]})
                 else:
                     merge_tags.append(tag)
-            self.reset_filter()
-            self.filter_data("date",">=",daterange[0])
-            self.filter_data("date","<=",daterange[1])
+            self._f_expenses = list(f_expenses_org)
             self.filter_data("tags","any",merge_tags)
             tag_avg = abs(self.get_total()/((daterange[1]-daterange[0]).days/30.437))
             if (tag_avg > avg_lim or parent == "") and len(merge_tags)>0:
@@ -230,7 +227,7 @@ class AccountData():
                 merge_tags = []
             return [res_tag_dict,merge_tags]
         (result, _) = _rec_get_tags_by_average(self.get_tags("==",0), "", {})
-        self.reset_filter()
+        self._f_expenses = list(f_expenses_org)
         return result
 
     def get_scale(self,account):
