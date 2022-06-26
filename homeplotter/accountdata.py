@@ -195,36 +195,43 @@ class AccountData():
 
     #Get tags where the monthly average is over a certain limit. Merge tags that are below the limit.
     #Returns a dictionary with tag name or merged name, and list of tags it contains.
-    def get_tags_by_average(self,avg_lim):
+    def get_tags_by_average(self,avg_lim,other_suffix = "Other"):
         #Keep the filtered date range since this function will reset the filter
         daterange = self._f_daterange
         def _rec_get_tags_by_average(tags, parent, res_tag_dict):
-            merge_tags = []
+            merge_tags = ["*"+parent] if parent != "" else []
             for tag in tags:
                 self.reset_filter()
                 self.filter_data("date",">=",daterange[0])
                 self.filter_data("date","<=",daterange[1])
-                self.filter_data("tags","==",tag)
+                self.filter_data("tags","any",[tag])
                 #Take the tag total and divide it by the time period in days dividied
                 #by the average number of days in a month (30.437 days)
-                tag_avg = self.get_total()/((daterange[1]-daterange[0]).days/30.437)
+                tag_avg = abs(self.get_total()/((daterange[1]-daterange[0]).days/30.437))
                 if tag_avg >= avg_lim * 2:
                     child_tags = self.tagger.get_tag_children(tag)
-                    _rec_get_tags_by_average(child_tags, tag, res_tag_dict)
+                    if len(child_tags) >= 2:
+                        (res_tag_dict,rest_tags) = _rec_get_tags_by_average(child_tags, tag, res_tag_dict)
+                        merge_tags+=rest_tags
+                    else:
+                        res_tag_dict.update({tag:[tag]})
                 elif tag_avg > avg_lim:
-                    res_tag_dict.update({tag:tag})
+                    res_tag_dict.update({tag:[tag]})
                 else:
                     merge_tags.append(tag)
-
-
-
-            return res_tag_dict
-
-        top_tags = self.get_tags("==",0)
-        return _rec_get_tags_by_average(top_tags, {})
-
-    
-
+            self.reset_filter()
+            self.filter_data("date",">=",daterange[0])
+            self.filter_data("date","<=",daterange[1])
+            self.filter_data("tags","any",merge_tags)
+            tag_avg = abs(self.get_total()/((daterange[1]-daterange[0]).days/30.437))
+            if (tag_avg > avg_lim or parent == "") and len(merge_tags)>0:
+                name = parent+", "+other_suffix if parent != "" else other_suffix
+                res_tag_dict.update({name:merge_tags})
+                merge_tags = []
+            return [res_tag_dict,merge_tags]
+        (result, _) = _rec_get_tags_by_average(self.get_tags("==",0), "", {})
+        self.reset_filter()
+        return result
 
     def get_scale(self,account):
         return self._scales[account]

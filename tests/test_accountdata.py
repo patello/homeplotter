@@ -163,6 +163,12 @@ def test_save_load(tmp_path):
     acc_data._expenses == acc_data_loaded._expenses
     acc_data._daterange == acc_data_loaded._daterange
 
+def test_get_tags_by_average():
+    acc_data = AccountData(data_path1,tag_file=tag_nested_path)
+    assert(acc_data.get_tags_by_average(10000)=={'tag2': ['tag2'], 'tagABC, Other': ['*tagABC', 'A', 'B']})
+    assert(acc_data.get_tags_by_average(100000,other_suffix="Övrig")=={'Övrig': ['tag2', 'tagABC']})
+    assert(acc_data.get_tags_by_average(0)=={'tag2': ['tag2'], 'A': ['A'], 'B1': ['B1'], 'B23': ['B23'], 'tagABC, Other': ['*tagABC', '*B']})
+
 if __name__=="__main__":
     test_init()
     test_get_data()
