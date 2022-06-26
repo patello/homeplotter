@@ -88,19 +88,21 @@ class AccountData():
             else:
                 filter_fun = lambda data: len(data[col_i])==0
         elif operator in ["all", "any"] and col_type == list and val_type == list:
+            #Copy the value so that the modification done on the list doesn't affect the input
+            val_cpy = list(value)
             exclude = []
-            for i in range(len(value)):
+            for i in range(len(val_cpy)):
                 #Check if first letter is "*", then add children to exclusion list
-                if value[i][0] == "*":
+                if val_cpy[i][0] == "*":
                     #Remove the asterix and add children to exclusion list
-                    value[i] = value[i][1:]
-                    exclude += self.tagger.get_tag_children(value[i])
+                    val_cpy[i] = val_cpy[i][1:]
+                    exclude += self.tagger.get_tag_children(val_cpy[i])
             #Remove any children from exclusion list that are also in the inclusion list 
-            exclude = list(filter(lambda elem: elem not in value,exclude))                 
+            exclude = list(filter(lambda elem: elem not in val_cpy,exclude))                 
             if operator == "any":
-                filter_fun = lambda data: any(v in data[col_i] for v in value) and not any(v in data[col_i] for v in exclude)
+                filter_fun = lambda data: any(v in data[col_i] for v in val_cpy) and not any(v in data[col_i] for v in exclude)
             elif operator == "all":
-                filter_fun = lambda data: all(v in data[col_i] for v in value) and not any(v in data[col_i] for v in exclude)
+                filter_fun = lambda data: all(v in data[col_i] for v in val_cpy) and not any(v in data[col_i] for v in exclude)
         elif operator == "!=" and col_type != list:
             filter_fun = lambda data:data[col_i] != value
         elif operator == "!=" and col_type == list and val_type == str:

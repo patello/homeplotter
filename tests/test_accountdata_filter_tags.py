@@ -91,3 +91,12 @@ def test_filter__tags_asterix():
     acc_data.reset_filter()
     acc_data.filter_data("tags","all",["*B","B1"])
     assert(acc_data.get_tags()==['B1','B', 'tagABC'])
+
+def test_filter__tags_asterix__no_modify():
+    #The tag list shouldn't be modified by this operation
+    tag_list = ["*B","B1"]
+    acc_data = AccountData(data_path1,tag_file=tag_path_nested)
+    acc_data.filter_data("tags","any",tag_list)
+    assert(tag_list == ["*B","B1"])
+
+
