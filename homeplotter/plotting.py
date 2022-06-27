@@ -14,36 +14,37 @@ summed_account = (account_data1/2) + account_data2 + (account_data3/2) + account
 
 start_date = datetime.date(2021,2,1)
 
-def create_plot(tag,output_path,acc_delta="Month"):
-    summed_account.reset_filter()
-    if tag != "Alla" and tag != "Överskott eller Underskottt":
-        summed_account.filter_data("tags","==",tag)
-    else:
-        summed_account.filter_data("tags","!=","Reservation")
-        summed_account.filter_data("tags","!=","Överföring")
-        if tag == "Alla":
-            summed_account.filter_data("tags","!=","Lön")
-    summed_account.filter_data("date",">=",start_date)
-    plt.cla()
-    tsdata = summed_account.get_timeseries()
-    tsdata.accumulate(1,acc_delta)
-    plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%m/%d/%Y'))
-    if acc_delta == "Week":
-        plt.gca().xaxis.set_major_locator(mdates.WeekdayLocator())
-    else:
-        plt.gca().xaxis.set_major_locator(mdates.MonthLocator())
-    plt.plot(tsdata.get_x(),tsdata.get_y())
-    plt.gcf().autofmt_xdate()
-    plt.grid(axis="y")
-    plt.savefig(output_path)
-    summed_account.reset_filter()
+def create_plots(tags,output_path,acc_delta="Month"):
+    for tag in tags:
+        summed_account.reset_filter()
+        if tag != "Alla" and tag != "Överskott eller Underskottt":
+            summed_account.filter_data("tags","any",tags[tag])
+        else:
+            summed_account.filter_data("tags","!=","Reservation")
+            summed_account.filter_data("tags","!=","Överföring")
+            if tag == "Alla":
+                summed_account.filter_data("tags","!=","Lön")
+        summed_account.filter_data("date",">=",start_date)
+        plt.cla()
+        tsdata = summed_account.get_timeseries()
+        tsdata.accumulate(1,acc_delta)
+        plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%m/%d/%Y'))
+        if acc_delta == "Week":
+            plt.gca().xaxis.set_major_locator(mdates.WeekdayLocator())
+        else:
+            plt.gca().xaxis.set_major_locator(mdates.MonthLocator())
+        plt.plot(tsdata.get_x(),tsdata.get_y())
+        plt.gcf().autofmt_xdate()
+        plt.grid(axis="y")
+        plt.savefig(output_path.format(tag=tag))
+        summed_account.reset_filter()
 
 def create_average(tags,output_path,acc_delta="Month"):
     tag_averages = []
     for tag in tags:
         summed_account.reset_filter()
         if tag != "Alla" and tag != "Överskott eller Underskottt":
-            summed_account.filter_data("tags","==",tag)
+            summed_account.filter_data("tags","any",tags[tag])
         else:
             summed_account.filter_data("tags","!=","Reservation")
             summed_account.filter_data("tags","!=","Överföring")
@@ -67,7 +68,7 @@ def create_month_totals(tags,output_path,month,year):
     for tag in tags:
         summed_account.reset_filter()
         if tag != "Alla" and tag != "Överskott eller Underskottt":
-            summed_account.filter_data("tags","==",tag)
+            summed_account.filter_data("tags","any",tags[tag])
         else:
             summed_account.filter_data("tags","!=","Reservation")
             summed_account.filter_data("tags","!=","Överföring")
@@ -116,29 +117,24 @@ def create_month_sums(output_path):
         summed_account.filter_data("date","<",datetime.date(1, month+1 if month != 12 else 1,year if month != 12 else year+1))
         
     
+summed_account.filter_data("tags","!=","Reservation")
+summed_account.filter_data("tags","!=","Överföring")
 
-top_tags = summed_account.get_tags("==",0)
-if "Reservation" in top_tags:
-    top_tags.remove("Reservation")
-if "Överföring" in top_tags:
-    top_tags.remove("Överföring")
-top_tags.append("Alla")
-top_tags.append("Överskott eller Underskottt")
-create_average(top_tags,"./output/summaries/average_top_tags.txt")
-for tag in top_tags:
-    create_plot(tag,'./output/{tag}.png'.format(tag=tag))
+top_tags = summed_account.get_tags_by_average(1000,"Övrigt")
 
-other_tags = summed_account.get_tags(">=",1)
-for tag in other_tags:
-    create_plot(tag,'./output/other/{tag}.png'.format(tag=tag))
+top_tags.update({"Alla":"Alla"})
+top_tags.update({"Överskott eller Underskottt":"Överskott eller Underskottt"})
+create_plots(top_tags,'./output/{tag}.png')
+create_average(top_tags,"./output/summaries/average_tags.txt")
 
-all_tags = summed_account.get_tags()
-all_tags.append("Alla")
-all_tags.append("Överskott eller Underskottt")
-create_average(all_tags,"./output/summaries/averages_all_tags.txt")
+#all_tags = summed_account.get_tags()
+#all_tags.append("Alla")
+#all_tags.append("Överskott eller Underskottt")
+#create_average(all_tags,"./output/summaries/averages_all_tags.txt")
+
 month=datetime.date.today().month
 year=datetime.date.today().year
-create_month_totals(all_tags,"./output/summaries/current_month_total.txt",month,year)
-create_month_totals(all_tags,"./output/summaries/last_month_total.txt",month-1 if month != 1 else 12,year if month != 1 else year-1)
+create_month_totals(top_tags,"./output/summaries/current_month_total.txt",month,year)
+create_month_totals(top_tags,"./output/summaries/last_month_total.txt",month-1 if month != 1 else 12,year if month != 1 else year-1)
 
 create_unsorted("./output/summaries/untagged.txt")
