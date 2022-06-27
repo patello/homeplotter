@@ -222,7 +222,13 @@ class AccountData():
             self.filter_data("tags","any",merge_tags)
             tag_avg = abs(self.get_total()/((daterange[1]-daterange[0]).days/30.437))
             if (tag_avg > avg_lim or parent == "") and len(merge_tags)>0:
-                name = parent+", "+other_suffix if parent != "" else other_suffix
+                if parent == "":
+                    name = other_suffix
+                #Check if all child tags have been put in merge tag, then use parent name
+                elif all(elem in merge_tags for elem in tags):
+                    name = parent
+                else:
+                    name = parent+", "+other_suffix
                 res_tag_dict.update({name:merge_tags})
                 merge_tags = []
             return [res_tag_dict,merge_tags]
