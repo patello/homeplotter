@@ -11,8 +11,12 @@ from homeplotter.categorizer import Categorizer
 from homeplotter.timeseries import TimeSeries
 
 def process_date(date_string):
-    if("-" in date_string):
+    if(date_string == "Reserverat"):
+        return datetime.date.today()
+    elif("-" in date_string):
         return datetime.datetime.strptime(date_string,"%Y-%m-%d").date()
+    elif("/" in date_string):
+        return datetime.datetime.strptime(date_string,"%Y/%m/%d").date()
     else:
         return datetime.datetime.strptime(date_string,"%Y.%m.%d").date()
 
