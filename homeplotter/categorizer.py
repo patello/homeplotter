@@ -45,15 +45,19 @@ class Categorizer():
             self._rec_cat = collections.OrderedDict(tag_flattening(self._rec_cat))
         
     def match(self,reciever):
-        #Remove common astrixes from reciever text since it they mess up matching and show up in random places
+        # Remove common astrixes from reciever text since it they mess up matching and show up in random places
+        replacements = ["K*", "C*", "*", "**"]
         r_text = reciever
-        r_text = r_text.replace("K*","")
-        r_text = r_text.replace("C*","")
-        r_text = r_text.replace("*","")
+        # Remove all sequences listed in replacements from the text
+        for rep in replacements:
+            r_text = r_text.replace(rep, "")
         
         matches = []
         for tag in self._rec_cat:
             reg_exp = "(?i)\\b("+"|".join(self._rec_cat[tag])+")\\b"
+            # Remove all sequences listed in replacements from the reg_exp
+            for rep in replacements:
+                reg_exp = reg_exp.replace(rep, "")
             if self._rec_cat[tag] != [] and not re.search(reg_exp,r_text) is None:
                 matches.append(tag)
                 #Check if it has a parent, and add those recursively as well.
