@@ -1,7 +1,7 @@
 import os
 import pytest
 
-from homeplotter.accountdata import AccountData
+from accountdata import AccountData
 
 resource_path = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', 'example_data'))
 tag_path = os.path.join(resource_path,"tags.json")

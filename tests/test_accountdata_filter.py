@@ -2,8 +2,8 @@ import os
 import datetime
 import pytest
 
-from homeplotter.accountdata import AccountData
-from homeplotter.timeseries import TimeSeries
+from accountdata import AccountData
+from timeseries import TimeSeries
 
 resource_path = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', 'example_data'))
 cat_path = os.path.join(resource_path,"categories.json")

@@ -3,7 +3,7 @@ import math
 import itertools
 import pytest
 
-from homeplotter.timeseries import TimeSeries
+from timeseries import TimeSeries
 
 sample_data = {
     "both-broken":[[datetime.date(2020, 12, 23), 200.0],[datetime.date(2020, 12, 24), 50.0],[datetime.date(2020, 12, 30), 200.0], [datetime.date(2020, 12, 30), 400.0], [datetime.date(2020, 12, 31), -300], [datetime.date(2021, 1, 2), 100],[datetime.date(2021,1,11),60]],

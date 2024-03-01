@@ -2,7 +2,7 @@ import datetime
 import math
 import csv
 
-from homeplotter.accountdata import AccountData 
+from accountdata import AccountData 
 
 tag_file="./data/personal_tags.json"
 account_data1 = AccountData("./data/old/konto_gemensamt.csv",tag_file=tag_file)

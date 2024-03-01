@@ -4,7 +4,7 @@ import itertools
 import pytest
 import calendar
 
-from homeplotter.timeseries import TimeSeries
+from timeseries import TimeSeries
 
 sample_data = {
     "both-broken":[[datetime.date(2017, 10, 12), 200.0],[datetime.date(2017, 11, 24), 50.0],[datetime.date(2018, 12, 5), 200.0], [datetime.date(2020, 12, 30), 400.0], [datetime.date(2020, 12, 31), -300], [datetime.date(2021, 2, 2), 100],[datetime.date(2021,3,11),60]],

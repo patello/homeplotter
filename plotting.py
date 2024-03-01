@@ -3,7 +3,7 @@ import matplotlib.dates as mdates
 import datetime
 import math
 
-from homeplotter.accountdata import AccountData 
+from accountdata import AccountData 
 
 tag_file="./data/personal_tags.json"
 account_data1 = AccountData("./data/old/konto_gemensamt.csv",tag_file=tag_file)

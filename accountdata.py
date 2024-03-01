@@ -7,8 +7,8 @@ import ast
 
 from functools import reduce
 
-from homeplotter.categorizer import Categorizer
-from homeplotter.timeseries import TimeSeries
+from categorizer import Categorizer
+from timeseries import TimeSeries
 
 def process_date(date_string):
     if(date_string == "Reserverat"):
