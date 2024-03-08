@@ -1,0 +1,22 @@
+[
+    {
+        "header_row":["Bokföringsdag","Belopp","Avsändare","Mottagare","Namn","Rubrik","Saldo","Valuta"],
+        "bank":"Nordea",
+        "date_format":"%Y/%m/%d",
+        "date_col":0,
+        "from_account_col":2,
+        "to_account_col":3,
+        "amount_col":1,
+        "text_col":5
+    },
+    {
+        "header_row":["Datum","Text","Typ","Budgetgrupp","Belopp","Saldo"],
+        "bank":"ICA",
+        "date_format":"%Y-%m-%d",
+        "date_col":0,
+        "from_account_col":null,
+        "to_account_col":null,
+        "amount_col":4,
+        "text_col":1
+    }
+]
