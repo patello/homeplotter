@@ -113,6 +113,7 @@ class DatabaseHandler:
                 amount REAL NOT NULL,
                 adjusted_amount REAL NOT NULL,
                 transaction_text TEXT NOT NULL,
+                comment TEXT DEFAULT "",
                 category_id INTEGER DEFAULT NULL,
                 text_match_id INTEGER DEFAULT NULL,
                 id_match_id INTEGER DEFAULT NULL,
